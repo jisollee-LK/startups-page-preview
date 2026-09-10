@@ -353,9 +353,11 @@
   /* ============ Eligibility (StartupEligibilitySection.tsx; grid treatment from SectionLiveKitPlatform/NetworkDiagram) ============ */
   .eligibility { position: relative; overflow: hidden; border-bottom: 1px solid var(--sep1); }
   .eligibility .inner { position: relative; z-index: 10; display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
-  .elig-left { display: flex; flex-direction: column; gap: 32px; }
-  .elig-list { display: flex; flex-direction: column; gap: 12px; }
-  .elig-list li { display: flex; align-items: center; gap: 20px; color: var(--fg2); font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+  .elig-left { display: flex; flex-direction: column; gap: 0; }
+  .elig-left .sh .sub { padding-bottom: 8px; }
+  .elig-left .elig-cta { padding-top: 40px; }
+  .elig-list { display: flex; flex-direction: column; gap: 0; }
+  .elig-list li { display: flex; align-items: center; gap: 12px; padding: 8px 0; color: var(--fg2); font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
   .elig-list li svg { width: 20px; height: 20px; flex: none; color: var(--cyan-400); }
   /* Art layer: anchored to the viewport centre (Figma frame origin sits at x=706 of 1440 → 50% - 14px), not to the column,
      so the isometric grid keeps extending on both sides as the browser gets wider; the section clips it. */
@@ -374,28 +376,28 @@
   @media (min-width: 640px) { .plat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (min-width: 1024px) { .plat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .plat-card {
-    min-height: 176px; padding: 24px;
+    min-height: 182px; padding: 20px 20px 24px;
     border: 1px solid var(--sep1); border-radius: 14px;
-    display: flex; flex-direction: column; gap: 24px;
+    display: flex; flex-direction: column; gap: 16px;
   }
   .plat-card svg { width: 20px; height: 20px; color: var(--fg2); }
-  .plat-card h3 { font-family: var(--font-sans); font-weight: 600; font-size: 16px; line-height: 1.5; letter-spacing: 0; color: var(--fg0); margin-bottom: 8px; }
+  .plat-card h3 { font-family: var(--font-sans); font-weight: 600; font-size: 16px; line-height: 1.5; letter-spacing: 0; color: var(--fg0); margin-bottom: 4px; }
   .plat-card p { color: var(--fg3); font-size: 16px; line-height: 1.5; }
 
   /* ============ Customer stories (StartupStoriesSection.tsx) ============ */
-  .story-grid { margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .story-grid { margin-top: 64px; display: grid; grid-template-columns: 1fr; gap: 16px; }
   @media (min-width: 1024px) { .story-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .story-card {
     min-height: 280px; padding: 24px;
     border: 1px solid var(--sep1); border-radius: 14px;
-    display: flex; flex-direction: column; justify-content: space-between;
+    display: flex; flex-direction: column; justify-content: flex-start;
   }
   /* Logo sizes per Figma 2377:89696: Assort 178x26.4, SAP 48x24 */
   .story-logo { display: flex; align-items: center; height: 26.4px; }
   .story-logo img { width: auto; height: 24px; }
   .story-logo.assort img { height: 26.4px; }
   .story-logo.sap img { height: 42px; }   /* Figma renders the 84x42 image unscaled inside its 48x24 slot */
-  .story-body { margin-top: 40px; display: flex; flex-direction: column; gap: 16px; }
+  .story-body { margin-top: 64px; display: flex; flex-direction: column; gap: 16px; }
   .story-body .industry { color: var(--fg2); }
   .story-quote { border-left: 2px solid var(--sep1); padding-left: 16px; display: flex; flex-direction: column; gap: 8px; }
   .story-quote p { color: var(--fg0); text-wrap: pretty; }
@@ -404,7 +406,7 @@
   /* ============ Apply (StartupApplySection.tsx + bytes-react Form/Input/Select) ============ */
   .apply .inner { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
   @media (min-width: 1024px) { .apply .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 86px; } }
-  .apply-left { display: flex; flex-direction: column; gap: 16px; }
+  .apply-left { display: flex; flex-direction: column; gap: 24px; }
   .apply-left h2 {
     font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.25; letter-spacing: -0.4px;
     color: var(--fg0); text-shadow: 0 0 14px #000;
@@ -533,9 +535,10 @@
   .footer .upper { border-top: 1px solid var(--sep1); padding: 64px 24px; }
   .footer .upper .inner { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
   @media (min-width: 1024px) { .footer .upper .inner { flex-direction: row; } }
-  .foot-brand { min-width: 208px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .foot-brand { min-width: 208px; flex: 1; display: flex; flex-direction: column; gap: 0; }
+  .foot-brand .logo { display: flex; align-items: center; height: 27px; padding-bottom: 24px; box-sizing: content-box; }
   .foot-brand .logo img { width: 20px; height: 20px; }
-  .foot-brand p { color: var(--fg3); font-size: 14px; line-height: 20px; text-wrap: balance; max-width: 352px; }
+  .foot-brand p { color: var(--fg3); font-size: 14px; line-height: 20px; text-wrap: balance; max-width: 352px; padding-bottom: 24px; }
   .foot-badges { display: flex; align-items: flex-end; gap: 16px; margin-top: auto; padding-top: 24px; }
   .foot-badges img { height: 36px; width: auto; opacity: 0.8; }
   .foot-badges a:hover img { opacity: 1; }
@@ -767,7 +770,7 @@
         <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Incorporated, or actively incorporating</li>
         <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>In production, or launching within 6 months</li>
       </ul>
-      <div><a class="cta focus-ring" href="#apply"><span class="lbl"><span class="ghost">Apply now</span><span class="stack"><span class="dark" aria-hidden="true">Apply now</span><span class="light">Apply now</span></span></span></a></div>
+      <div class="elig-cta"><a class="cta focus-ring" href="#apply"><span class="lbl"><span class="ghost">Apply now</span><span class="stack"><span class="dark" aria-hidden="true">Apply now</span><span class="light">Apply now</span></span></span></a></div>
     </div>
   </div>
   <div class="elig-art" aria-hidden="true">
