@@ -25,7 +25,7 @@
       strokeWeight: 4,
       // layer box, % of canvas. Tool default is 80x26 on 16:9; the hero canvas
       // is 4:1 so the same texture aspect is preserved with a centred box.
-      box: { x: 12.2, y: 12.2, w: 75.6, h: 75.6 },
+      box: { x: 8.8, y: 8.8, w: 82.4, h: 82.4 },
     },
     refract: {
       profile: 0,            // ribbed
