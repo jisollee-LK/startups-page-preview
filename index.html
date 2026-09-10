@@ -6,829 +6,611 @@
 <title>LiveKit Startup Program | LiveKit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
   /* ============ Brand display face (TWK Everett) ============ */
   @font-face { font-family: 'TWK Everett'; font-weight: 300; font-style: normal; font-display: swap; src: url('assets/fonts/everett-light.woff2') format('woff2'); }
   @font-face { font-family: 'TWK Everett'; font-weight: 400; font-style: normal; font-display: swap; src: url('assets/fonts/everett-regular.woff2') format('woff2'); }
   @font-face { font-family: 'TWK Everett'; font-weight: 500; font-style: normal; font-display: swap; src: url('assets/fonts/everett-medium.woff2') format('woff2'); }
 
-  /* ============ Tokens (Figma variables, node 2258:57424) ============ */
+  /* ============ Tokens — mirrors packages/bytes-core (dark theme) ============ */
   :root {
     --bg0: #000000;
-    --bg1: #070707;
+    --bg1: #070707;            /* page */
     --bg2: #131313;
     --bg3: #1f1f1f;
-    --sep1: #202020;
-    --sep2: #30302f;
-    --white: #ffffff;
+    --sep1: #202020;           /* separator1 */
+    --sep2: #30302f;           /* separator2: hover border, input border */
     --fg0: #ffffff;
     --fg1: #cccccc;
-    --fg2: #b2b2b2;
+    --fg2: #b2b2b2;            /* body default */
     --fg3: #999999;
-    --fg4: #666666;
-    --fg-default: #fdfdfc;
-    --cyan-400: #1fd5f9;
-    --cyan: #20d5f9;
-    --cyan-deep: #05b6da;
+    --fg4: #666666;            /* placeholder */
+    --cyan-200: #bcedfd;
+    --cyan-400: #1fd5f9;       /* fgAccentPrimary1 */
+    --cyan-500: #07b6da;       /* required mark */
+    --cyan-600: #15889f;       /* primary button hover */
+    --cyan-900: #051518;
+    --glow: #035c6d;
 
-    --font-body: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-display: 'TWK Everett', 'Public Sans', -apple-system, sans-serif;
-    --font-mono: 'Commit Mono', 'IBM Plex Mono', ui-monospace, monospace;
-    --font-inter: 'Inter', 'Public Sans', -apple-system, sans-serif;
+    --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Commit Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-display: 'TWK Everett', ui-sans-serif, system-ui, sans-serif;
 
-    --radius-default: 4px;
-    --radius-lg: 8px;
-    --radius-card: 14px;
-    --radius-full: 9999px;
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-cta: cubic-bezier(0, 0, 0.58, 1);
+    --header-h: 76px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; interpolate-size: allow-keywords; }
   body {
     background: var(--bg1);
     color: var(--fg2);
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.7;                 /* text-base = 16/27.2 */
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     min-width: 320px;
   }
-  img { display: block; }
+  ::selection { background: var(--cyan-900); color: var(--cyan-400); }
+  img, svg { display: block; }
   a { text-decoration: none; color: inherit; }
-  button { font-family: inherit; cursor: pointer; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
   ul { list-style: none; }
+  h1, h2, h3, h4 { font-family: var(--font-display); color: var(--fg0); font-weight: 400; }
 
-  /* Section shell: 1440 frame, 69px side padding, 1280 content column */
-  .section {
-    background: var(--bg1);
-    padding: 80px 69px;
-    display: flex;
-    justify-content: center;
-    position: relative;
-  }
-  .section > .inner { width: 100%; max-width: 1280px; }
+  /* Focus ring shared by buttons / inputs (ring-1 cyan, ring-offset-2 bg1) */
+  .focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--cyan-400); }
 
-  .eyebrow {
+  /* ============ Layout: ConstrainWidth = max-w-7xl + px-6 ============ */
+  .section { padding: 64px 24px; background: var(--bg1); }
+  .section > .inner { width: 100%; max-width: 1280px; margin: 0 auto; }
+  .anchor { scroll-margin-top: 96px; }
+  @media (min-width: 1024px) { .section { padding: 80px 24px; } }
+
+  /* ============ SectionHeader (components/sections/SectionHeader.tsx) ============ */
+  .sh { display: flex; flex-direction: column; gap: 8px; color: var(--fg0); }
+  .sh .eyebrow {
     font-family: var(--font-mono);
-    font-weight: 400;
     font-size: 14px;
-    line-height: 1.5;
-    letter-spacing: 0.8px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--fg3);
   }
-  .eyebrow.bold { font-weight: 700; }
-  .heading { display: flex; flex-direction: column; gap: 16px; }
-  .heading .title-group { display: flex; flex-direction: column; gap: 12px; }
-  h2.display {
+  .sh .sh-body { display: flex; flex-direction: column; gap: 16px; }
+  .sh h2 {
     font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 36px;
+    font-weight: 300;
+    font-size: 30px;
     line-height: 1.25;
-    letter-spacing: -0.4px;
-    color: var(--white);
+    letter-spacing: -0.025em;
+    color: var(--fg0);
+    text-wrap: pretty;
   }
-  h2.display.body-font { font-family: var(--font-body); letter-spacing: 0; }
-  .accent { color: var(--cyan-400); }
-  .section-sub {
-    font-size: 18px;
-    line-height: 1.5;
-    color: var(--fg1);
-    max-width: 556px;
+  .sh h2 .accent { color: var(--cyan-400); filter: drop-shadow(0 0 8px var(--glow)); }
+  .sh .sub { padding-top: 8px; color: var(--fg2); font-size: 14px; line-height: 20px; letter-spacing: 0.01em; }
+  .sh .sub span { display: inline-block; max-width: 65ch; text-wrap: pretty; }
+  @media (min-width: 1024px) {
+    .sh h2 { font-size: 36px; }
+    .sh .sub { font-size: 16px; line-height: 1.7; }
   }
 
-  /* ============ Nav (2258:57425) ============ */
+  /* ============ Buttons (packages/bytes-react Button.tsx) ============ */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 28px; padding: 0 12px;
+    border-radius: 4px; border: 1px solid transparent;
+    font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0;
+    white-space: nowrap;
+    transition: all 150ms var(--ease-std);
+  }
+  .btn:active { transform: scale(0.99); }
+  .btn-primary { background: var(--cyan-400); color: var(--bg1); border-color: transparent; }
+  .btn-primary:hover { background: var(--cyan-600); }
+  .btn-primary:active { background: var(--cyan-400); }
+  .btn-outline { background: var(--bg1); color: var(--fg1); border-color: var(--sep1); }
+  .btn-outline:hover { background: var(--bg2); border-color: var(--sep2); }
+  .btn-outline:active { background: var(--bg1); }
+  .btn-ghost { background: transparent; color: var(--fg1); }
+  .btn-ghost:hover { background: var(--bg2); }
+  .btn-lg { height: 44px; padding: 12px; gap: 12px; font-size: 16px; line-height: 20px; border-radius: 6px; }
+
+  /* PrimaryCtaButton (components/CtaButtons.tsx): cyan fill -> transparent on hover, label slides up */
+  .cta {
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 7px 16px; border-radius: 6px;
+    border: 1px solid var(--cyan-400); background: var(--cyan-400);
+    box-shadow: 0 0 8px rgba(31,213,249,0.15);
+    font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0.01em;
+    white-space: nowrap; overflow: hidden;
+    transition: color 150ms var(--ease-cta), background-color 150ms var(--ease-cta), border-color 150ms var(--ease-cta), box-shadow 150ms var(--ease-cta), transform 150ms var(--ease-cta);
+  }
+  .cta:hover { background: transparent; border-color: var(--cyan-200); box-shadow: 0 0 16px rgba(31,213,249,0.15); }
+  .cta:active { transform: scale(0.98); }
+  .cta .lbl { position: relative; overflow: hidden; display: block; }
+  .cta .lbl .ghost { visibility: hidden; display: block; }
+  .cta .lbl .stack {
+    position: absolute; left: 0; top: 0; width: 100%;
+    display: flex; flex-direction: column;
+    transition: translate 150ms var(--ease-cta);
+  }
+  .cta:hover .lbl .stack { translate: 0 -50%; }
+  .cta .lbl .stack .dark { color: var(--bg1); }
+  .cta .lbl .stack .light { color: var(--fg0); }
+  /* SecondaryCtaButton = outline + rounded-md + semibold + tracking-tight */
+  .cta-secondary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 7px 16px; border-radius: 6px;
+    border: 1px solid var(--sep1); background: var(--bg1); color: var(--fg1);
+    font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: -0.025em;
+    white-space: nowrap;
+    transition: all 150ms var(--ease-std);
+  }
+  .cta-secondary:hover { border-color: var(--sep2); background: var(--bg2); }
+  .cta-secondary:active { transform: scale(0.99); background: var(--bg1); }
+
+  /* ============ Header (components/layout/Header.tsx) ============ */
   .nav {
-    background: var(--bg1);
-    height: 52px;
-    display: flex;
-    justify-content: center;
-    padding: 0 80px;
+    position: sticky; top: 0; left: 0; z-index: 100; width: 100%;
+    padding: 12px 24px;
+    border-bottom: 1px solid transparent;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    transition: border-color 300ms var(--ease-out), padding 300ms var(--ease-out), background-color 300ms var(--ease-out);
   }
+  .nav.scrolled { padding: 4px 24px; border-bottom-color: var(--sep1); }
+  .nav.menu-open { background: var(--bg1); }
   .nav .inner {
-    width: 100%;
-    max-width: 1280px;
-    height: 52px;
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .nav-logo { position: absolute; left: 0; top: 15.5px; }
-  .nav-logo img { width: 90px; height: 21px; }
-  .nav-main {
-    position: absolute;
-    left: 138px;
-    right: 0;
-    top: 8px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .nav-links {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    height: 36px;
-    padding-top: 1px;
-  }
-  .nav-link {
-    display: flex;
-    align-items: center;
-    height: 36px;
+    width: 100%; max-width: 1280px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 48px;
     padding: 8px 0;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.14px;
-    color: var(--white);
-    white-space: nowrap;
   }
-  .nav-link img { width: 12px; height: 12px; margin-left: 4px; }
-  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-logo { display: flex; align-items: center; height: 36px; }
+  .nav-logo img { width: 90px; height: 21px; }
+  .nav-links { display: none; flex: 1; align-items: center; gap: 16px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 4px; padding: 8px 0;
+    font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0.01em; color: var(--fg0);
+    transition: color 200ms var(--ease-out);
+  }
+  .nav-link:hover { color: var(--cyan-400); }
+  .nav-link img { width: 12px; height: 12px; }
+  .nav-right { display: none; align-items: center; gap: 12px; }
   .nav-gh {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px 8px 0;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.14px;
-    color: var(--fg2);
-    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px; margin-right: 8px; padding: 8px 0;
+    font-size: 14px; line-height: 20px; letter-spacing: 0.01em; color: var(--fg2); white-space: nowrap;
+    transition: all 150ms var(--ease-out);
   }
+  .nav-gh:hover { color: var(--fg0); }
   .nav-gh img.gh-icon { width: 16px; height: 16px; }
   .nav-gh .sep { font-weight: 600; }
   .nav-gh .stars {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 1px 6px 1px 4px;
-    margin-left: -4px;
-    background: var(--bg3);
-    border-radius: var(--radius-full);
-    font-family: var(--font-mono);
-    font-size: 10.08px;
-    line-height: 15.12px;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 6px 1px 4px; border-radius: 9999px; background: var(--bg3);
+    font-family: var(--font-mono); font-size: 10.08px; line-height: 1.5; letter-spacing: 0; color: var(--fg2);
   }
   .nav-gh .stars img { width: 8px; height: 8px; }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 12px;
-    border-radius: var(--radius-default);
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 16px;
-    white-space: nowrap;
+  .nav-toggle { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; color: var(--fg0); }
+  .nav-toggle svg { width: 20px; height: 20px; }
+  .nav-toggle .ico-close { display: none; }
+  .nav.menu-open .nav-toggle .ico-close { display: block; }
+  .nav.menu-open .nav-toggle .ico-menu { display: none; }
+  .mobile-nav {
+    display: none; position: absolute; left: 0; top: 100%; width: 100%;
+    height: calc(100dvh - var(--header-h)); overflow-y: auto;
+    background: var(--bg1); padding: 8px 24px 32px;
   }
-  .btn-secondary { height: 34px; background: var(--bg1); border: 1px solid var(--sep1); color: var(--fg1); }
-  .btn-primary { height: 32px; background: var(--cyan); color: var(--bg1); }
+  .nav.menu-open .mobile-nav { display: block; animation: menu-in 150ms var(--ease-out); }
+  @keyframes menu-in { from { opacity: 0; translate: 0 -20px; } to { opacity: 1; translate: 0 0; } }
+  .mobile-nav a.item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid var(--sep1);
+    font-size: 16px; line-height: 24px; font-weight: 600; color: var(--fg0);
+  }
+  .mobile-nav .actions { display: flex; gap: 12px; padding-top: 24px; }
+  .mobile-nav .actions .btn { flex: 1; height: 36px; font-size: 14px; }
+  .mobile-nav .social { display: flex; gap: 20px; padding-top: 32px; }
+  .mobile-nav .social a { color: var(--fg2); transition: color 150ms var(--ease-out); }
+  .mobile-nav .social a:hover { color: var(--cyan-400); }
+  .mobile-nav .social img { width: 20px; height: 20px; }
+  @media (min-width: 1024px) {
+    .nav-links, .nav-right { display: flex; }
+    .nav-toggle, .mobile-nav { display: none !important; }
+  }
+  body.menu-open { overflow-y: hidden; }
 
-  /* ============ Hero (2258:57489) ============ */
+  /* ============ Hero (kept as designed; shader wordmark) ============ */
   .hero {
     background: var(--bg1);
-    padding: 120px 69px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 56px;
+    overflow: clip;
+    padding: 80px 24px 64px;
+    display: flex; flex-direction: column; align-items: center; gap: 56px;
   }
+  @media (min-width: 1024px) { .hero { padding: 120px 24px; } }
   .hero .wordmark { position: relative; width: 800px; max-width: 100%; aspect-ratio: 800 / 131; }
   .hero .wordmark img { width: 100%; height: 100%; }
   .hero .wordmark.shader-on img { visibility: hidden; }
-  /* Shader canvas (designer's shader tool preset). Layout slot stays the
-     800x131 wordmark box; the canvas is larger so shards and glow have room. */
   .hero .wordmark canvas {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 160%;
-    aspect-ratio: 4 / 1;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    display: block;
+    position: absolute; left: 50%; top: 50%; width: 160%; aspect-ratio: 4 / 1;
+    transform: translate(-50%, -50%); pointer-events: none; display: block;
   }
   .hero-body { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 32px; }
   .hero-copy { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 24px; }
   .hero-sub {
-    width: 544px;
-    max-width: 100%;
-    text-align: center;
-    font-size: 18px;
-    line-height: 28px;
-    letter-spacing: 0.18px;
-    color: var(--fg2);
+    width: 544px; max-width: 100%; text-align: center;
+    font-size: 18px; line-height: 28px; letter-spacing: 0.01em; color: var(--fg2);
   }
   .hero-chips { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
   .hero-chips li {
-    font-size: 16px;
-    line-height: 1.5;
-    letter-spacing: -0.4px;
-    color: var(--fg2);
-    text-align: center;
-    white-space: nowrap;
-    padding-right: 16px;
-    border-right: 1px solid var(--sep1);
+    font-size: 16px; line-height: 1.5; letter-spacing: -0.025em; color: var(--fg2);
+    text-align: center; white-space: nowrap; padding-right: 16px; border-right: 1px solid var(--sep1);
   }
   .hero-chips li:last-child { padding-right: 0; border-right: 0; }
-  .hero-actions { display: flex; align-items: center; gap: 14px; }
-  .btn-hero {
-    display: inline-flex;
-    border-radius: 10px;
-    font-family: var(--font-inter);
-    font-weight: 600;
-    font-size: 16px;
-    line-height: 25.6px;
-    letter-spacing: -0.3125px;
-    white-space: nowrap;
-  }
-  .btn-hero-primary { background: var(--cyan-400); color: var(--bg1); padding: 14px 28px; }
-  .btn-hero-secondary { border: 1px solid rgba(253,253,252,0.18); color: var(--fg-default); padding: 14px 28px; }
+  /* Figma 2386:10246: standard CTA pair, 36px tall, 8px radius, 12px gap */
+  .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .hero-actions .cta { border-radius: 8px; }
+  .hero-actions .cta-secondary { border-radius: 8px; padding: 7px 12px; letter-spacing: -0.025em; }
 
-  /* ============ Logo band (2258:57506) ============ */
+  /* ============ Logo ribbon (components/sections/SectionLogoRibbon.tsx, default rotating mode) ============ */
   .logo-band {
     background: var(--bg1);
-    border-top: 1px solid var(--sep1);
     border-bottom: 1px solid var(--sep1);
-    display: flex;
-    justify-content: center;
+    animation: fade-in 600ms var(--ease-out) 250ms both;
   }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
   .logo-band .grid {
-    width: 1280px;
-    max-width: 100%;
-    height: 64px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-template-columns: repeat(2, 1fr); align-items: center; overflow: hidden;
     border-left: 1px solid var(--sep1);
-    overflow: clip;
   }
-  .logo-band .grid img { width: 100%; height: 64px; }
+  .logo-band .cell {
+    position: relative; height: 64px; overflow: hidden;
+    border-top: 1px solid var(--sep1);
+  }
+  .logo-band .cell:nth-child(odd) { border-right: 1px solid var(--sep1); }
+  .logo-band .cell:nth-child(5) { display: none; }
+  .logo-band .slot {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(40%); filter: blur(0);
+    transform-origin: 50% 100%;
+    pointer-events: none;
+  }
+  /* enter: spring (damping 15, stiffness 55) approximated with an overshooting curve */
+  .logo-band .slot.in {
+    opacity: 1; transform: translateY(0);
+    transition: opacity 500ms var(--ease-out), transform 1100ms cubic-bezier(0.18, 1.25, 0.32, 1);
+  }
+  .logo-band .slot.out {
+    opacity: 0; transform: translateY(-70%); filter: blur(15px);
+    transition: opacity 450ms var(--ease-std), transform 700ms var(--ease-std), filter 450ms var(--ease-std);
+  }
+  .logo-band .slot img { width: auto; height: 24px; }
+  @media (min-width: 1024px) {
+    .logo-band { border-top: 1px solid var(--sep1); }
+    .logo-band .grid { grid-template-columns: repeat(5, 1fr); max-width: 1280px; margin: 0 auto; }
+    .logo-band .cell { border-top: 0; border-right: 1px solid var(--sep1); }
+    .logo-band .cell:nth-child(5) { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .logo-band .slot, .logo-band .slot.in, .logo-band .slot.out { transition: none; }
+  }
 
-  /* ============ What's included (2258:61620) ============ */
-  .included .inner { display: flex; flex-direction: column; gap: 56px; }
-  .included-grid { display: flex; gap: 16px; align-items: stretch; }
+  /* ============ What's included (kept as designed) ============ */
+  .included .sh { max-width: 576px; }
+  .included-grid { margin-top: 56px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 1024px) { .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .inc-card {
-    flex: 1 1 0;
-    min-width: 0;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-    padding: 1px 1px 33px;
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
-    background: var(--bg2);
-    overflow: clip;
+    position: relative; display: flex; flex-direction: column; gap: 32px;
+    padding: 1px 1px 33px; border: 1px solid var(--sep1); border-radius: 14px;
+    background: var(--bg2); overflow: clip;
   }
   .inc-top {
-    position: relative;
-    height: 319.375px;
+    position: relative; height: 319.375px;
     background: var(--bg1) url('assets/figma-2258/inc-card-bg@2x.png') center / cover no-repeat;
     overflow: clip;
   }
-  .inc-top .glow {
-    position: absolute;
-    left: 50%;
-    top: 50.38px;
-    width: 616px;
-    height: 405px;
-    transform: translate(-50%, -100px);
-    pointer-events: none;
-  }
-  .inc-top .floor {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 295.38px;
-    height: 22px;
-    background: var(--sep2);
-    filter: blur(50px);
-    opacity: 0.8;
-  }
-  .inc-corner {
-    position: absolute;
-    left: -160px;
-    top: -110px;
-    width: 549px;
-    height: 432px;
-    transform: translate(-100px, -100px);
-    pointer-events: none;
-  }
+  .inc-top .glow { position: absolute; left: 50%; top: 50.38px; width: 616px; height: 405px; transform: translate(-50%, -100px); pointer-events: none; }
+  .inc-top .floor { position: absolute; left: 0; right: 0; top: 295.38px; height: 22px; background: var(--sep2); filter: blur(50px); opacity: 0.8; }
+  .inc-corner { position: absolute; left: -160px; top: -110px; width: 549px; height: 432px; transform: translate(-100px, -100px); pointer-events: none; }
   .inc-card:first-child .inc-corner { transform: translate(-147px, -117.6px); }
   .inc-copy { display: flex; flex-direction: column; gap: 16px; padding: 0 24px; }
-  .inc-price {
-    font-family: var(--font-display);
-    font-size: 30px;
-    line-height: 1.25;
-    letter-spacing: -0.4px;
-    color: var(--white);
-  }
+  .inc-price { font-family: var(--font-display); font-size: 30px; line-height: 1.25; letter-spacing: -0.025em; color: var(--fg0); }
   .inc-meta { display: flex; flex-direction: column; gap: 6px; }
-  .inc-name { font-size: 16px; line-height: 1.5; letter-spacing: -0.4px; color: var(--white); }
-  .inc-desc { font-size: 14px; line-height: 20px; letter-spacing: 0.14px; color: var(--fg2); max-width: 300px; }
-
-  /* Card 1: pricing card */
+  .inc-name { font-size: 16px; line-height: 1.5; letter-spacing: -0.025em; color: var(--fg0); }
+  .inc-desc { font-size: 14px; line-height: 20px; letter-spacing: 0.01em; color: var(--fg2); max-width: 300px; }
   .plan-card {
-    position: absolute;
-    left: calc(50% - 5.5px);
-    top: calc(50% - 1.19px);
-    transform: translate(-50%, -50%);
-    width: 265px;
-    height: 229px;
-    padding: 24px;
-    background: var(--bg1);
-    border: 1px solid var(--sep1);
-    border-radius: 16px;
-    backdrop-filter: blur(25px);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: clip;
+    position: absolute; left: calc(50% - 5.5px); top: calc(50% - 1.19px); transform: translate(-50%, -50%);
+    width: 265px; height: 229px; padding: 24px;
+    background: var(--bg1); border: 1px solid var(--sep1); border-radius: 16px; backdrop-filter: blur(25px);
+    display: flex; flex-direction: column; justify-content: space-between; overflow: clip;
   }
-  .plan-card .plan-head { display: flex; flex-direction: column; gap: 4px; line-height: 1.5; white-space: nowrap; }
-  .plan-card .plan-name { font-size: 20px; color: var(--white); }
+  .plan-card .plan-head { display: flex; flex-direction: column; gap: 4px; line-height: 1.5; white-space: nowrap; letter-spacing: 0; }
+  .plan-card .plan-name { font-size: 20px; color: var(--fg0); }
   .plan-card .plan-tag { font-size: 10px; color: var(--fg3); }
   .plan-card .plan-price-row { display: flex; align-items: flex-end; gap: 8px; }
-  .plan-card .plan-price { font-size: 48px; line-height: 1.25; color: var(--cyan-400); }
-  .plan-card .plan-strike {
-    padding: 8px 0;
-    font-family: var(--font-display);
-    font-size: 18px;
-    line-height: 1.25;
-    letter-spacing: -0.4px;
-    text-decoration: line-through;
-    color: var(--fg4);
-  }
-  .plan-card .plan-pill {
-    align-self: flex-start;
-    margin-top: 8px;
-    padding: 2px 8px;
-    background: var(--bg3);
-    border-radius: 4px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--fg2);
-    white-space: nowrap;
-  }
-
-  /* Card 2: coins (exported composition) */
+  .plan-card .plan-price { font-size: 48px; line-height: 1.25; letter-spacing: 0; color: var(--cyan-400); }
+  .plan-card .plan-strike { padding: 8px 0; font-family: var(--font-display); font-size: 18px; line-height: 1.25; letter-spacing: -0.025em; text-decoration: line-through; color: var(--fg4); }
+  .plan-card .plan-pill { align-self: flex-start; margin-top: 8px; padding: 2px 8px; background: var(--bg3); border-radius: 4px; font-size: 12px; line-height: 1.5; letter-spacing: 0; color: var(--fg2); white-space: nowrap; }
   .inc-top.coins { background: var(--bg1) url('assets/figma-2258/inc-coins-top@2x.png') center / cover no-repeat; }
-
-  /* Card 3: inference partners */
   .inf-grid {
-    position: absolute;
-    left: calc(50% + 0.5px);
-    top: calc(50% + 0.31px);
-    transform: translate(-50%, -50%);
-    width: 375px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: center;
-    align-items: center;
+    position: absolute; left: calc(50% + 0.5px); top: calc(50% + 0.31px); transform: translate(-50%, -50%);
+    width: 375px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: center;
   }
-  .inf-tile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 12px 12px;
-    background: var(--bg1);
-    border: 1px solid var(--sep1);
-    border-radius: 12px;
-  }
+  .inf-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 12px 12px; background: var(--bg1); border: 1px solid var(--sep1); border-radius: 12px; }
   .inf-tile .ico { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; overflow: clip; }
   .inf-tile .ico img { width: 24.75px; height: 24.75px; }
   .inf-tile .ico img.md { width: 27.5px; height: 27.5px; }
   .inf-tile .ico img.lg { width: 33px; height: 33px; }
   .inf-tile .ico img.xl { width: 30.25px; height: 30.25px; }
-  .inf-tile span { font-weight: 300; font-size: 10px; line-height: 1.5; color: var(--fg2); white-space: nowrap; }
+  .inf-tile span { font-weight: 300; font-size: 10px; line-height: 1.5; letter-spacing: 0; color: var(--fg2); white-space: nowrap; }
 
-  /* ============ Eligibility (2258:57647) ============ */
-  .eligibility { overflow: clip; }
-  .eligibility .inner { display: flex; align-items: center; justify-content: space-between; }
-  .elig-left { width: 608px; max-width: 100%; display: flex; flex-direction: column; gap: 32px; position: relative; z-index: 1; }
-  .elig-list { display: flex; flex-direction: column; gap: 8px; }
-  .elig-list li { display: flex; align-items: center; gap: 20px; }
-  .elig-list li img { width: 20px; height: 20px; margin-top: 2px; flex: none; }
-  .elig-list li span { font-size: 16px; line-height: 1.5; letter-spacing: -0.4px; color: var(--fg2); }
-  .elig-list li:first-child span { line-height: 24px; letter-spacing: 0; }
-  .btn-apply {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 36px;
-    padding: 8px 16px;
-    background: var(--cyan);
-    border: 1px solid var(--cyan);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 0 8px rgba(32,213,249,0.15);
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.14px;
-    color: var(--bg1);
-    white-space: nowrap;
-  }
-  .elig-right { width: 654px; height: 428px; position: relative; flex: none; z-index: 0; }
-  .elig-right img {
-    position: absolute;
-    left: -706px;
-    top: -80px;
-    width: 1440px;
-    height: 588px;
-    max-width: none;
-    pointer-events: none;
+  /* ============ Eligibility (StartupEligibilitySection.tsx; grid treatment from SectionLiveKitPlatform/NetworkDiagram) ============ */
+  .eligibility { position: relative; overflow: hidden; border-bottom: 1px solid var(--sep1); }
+  .eligibility .inner { position: relative; z-index: 10; display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+  .elig-left { display: flex; flex-direction: column; gap: 32px; }
+  .elig-list { display: flex; flex-direction: column; gap: 12px; }
+  .elig-list li { display: flex; align-items: center; gap: 20px; color: var(--fg2); font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+  .elig-list li svg { width: 20px; height: 20px; flex: none; color: var(--cyan-400); }
+  /* Art layer: anchored to the viewport centre (Figma frame origin sits at x=706 of 1440 → 50% - 14px), not to the column,
+     so the isometric grid keeps extending on both sides as the browser gets wider; the section clips it. */
+  .elig-art { display: none; position: absolute; left: calc(50% - 14px); top: 80px; width: 817.83px; height: 428px; pointer-events: none; }
+  .elig-art .grid { position: absolute; left: 0; top: 0; width: 1612.6px; height: 1291.67px; transform-origin: 0 0; transform: matrix(0.866, -0.5, 0.866, 0.5, -958, 521.68); }
+  .elig-art .corners { position: absolute; left: 89.85px; top: 49.05px; width: 552.1px; height: 318.75px; }
+  .elig-art .tile { position: absolute; left: 153.35px; top: 86.83px; width: 390.28px; height: 232.81px; }
+  @media (min-width: 1024px) {
+    .eligibility .inner { grid-template-columns: 608px 1fr; gap: 64px; }
+    .elig-art { display: block; }
   }
 
-  /* ============ Why LiveKit (2258:58206) ============ */
-  .platform { padding-top: 120px; }
-  .platform .inner { display: flex; flex-direction: column; gap: 64px; }
-  .plat-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  /* ============ Why LiveKit (StartupWhyLiveKitSection.tsx) ============ */
+  @media (min-width: 1024px) { .platform { padding-top: 120px; } }
+  .plat-grid { margin-top: 64px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .plat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1024px) { .plat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .plat-card {
-    width: 308px;
-    min-height: 176px;
-    padding: 24px 24px 32px;
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+    min-height: 176px; padding: 24px;
+    border: 1px solid var(--sep1); border-radius: 14px;
+    display: flex; flex-direction: column; gap: 24px;
   }
-  .plat-card img { width: 20px; height: 20px; }
-  .plat-card .txt { display: flex; flex-direction: column; gap: 8px; }
-  .plat-card h3 { font-weight: 600; font-size: 18px; line-height: 1.5; color: var(--white); }
-  .plat-card p { font-size: 16px; line-height: 24px; color: var(--fg3); }
+  .plat-card svg { width: 20px; height: 20px; color: var(--fg2); }
+  .plat-card h3 { font-family: var(--font-sans); font-weight: 600; font-size: 18px; line-height: 28px; letter-spacing: 0; color: var(--fg0); margin-bottom: 8px; }
+  .plat-card p { color: var(--fg3); }
 
-  /* ============ What you can build (2258:58243) ============ */
-  .build .inner { display: flex; flex-direction: column; gap: 64px; }
-  .uc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  .uc-card {
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
-    overflow: clip;
-    display: flex;
-    flex-direction: column;
-  }
-  .uc-card .art { width: 100%; aspect-ratio: 632 / 331; overflow: clip; }
-  .uc-card .art img { width: 100%; height: 100%; object-fit: cover; }
-  .uc-card .txt { padding: 24px; display: flex; flex-direction: column; gap: 8px; }
-  .uc-card h3 { font-weight: 600; font-size: 18px; line-height: 1.5; color: var(--white); }
-  .uc-card p { font-size: 16px; line-height: 24px; color: var(--fg3); }
-
-  /* ============ Customer stories (2258:60199) ============ */
-  .stories .inner { display: flex; flex-direction: column; gap: 68px; }
-  .stories .section-sub { max-width: none; white-space: nowrap; }
-  .story-rows { display: flex; flex-direction: column; gap: 16px; }
-  .story-row { display: flex; gap: 16px; align-items: stretch; }
+  /* ============ Customer stories (StartupStoriesSection.tsx) ============ */
+  .story-grid { margin-top: 68px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 1024px) { .story-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .story-card {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 282px;
-    padding: 24px;
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
-    background: var(--bg1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: clip;
+    min-height: 280px; padding: 24px;
+    border: 1px solid var(--sep1); border-radius: 14px;
+    display: flex; flex-direction: column; justify-content: space-between;
   }
-  .story-card:first-child { border-color: var(--bg3); }
-  .story-logo { height: 24px; display: flex; align-items: center; }
-  .story-logo.assort { height: 26.4px; width: 178.2px; }
-  .story-logo.assort img { width: 173.3px; height: 20.6px; margin-left: 1.5px; }
-  .story-logo.polymath { width: 65px; height: 24px; position: relative; }
-  .story-logo.polymath .box { position: absolute; left: 0; top: 0; width: 117px; height: 43.2px; transform-origin: 0 0; transform: scale(0.5556); }
-  .story-logo.polymath .mark { position: absolute; left: 1.04%; top: 5.5%; width: 27.85%; height: 89%; }
-  .story-logo.polymath .text { position: absolute; left: 32.9%; top: 27.8%; width: 66.06%; height: 55.1%; }
-  .story-logo.polymath img { width: 100%; height: 100%; }
-  .story-body {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    font-size: 16px;
-    line-height: 24px;
-  }
+  /* Logo sizes per Figma 2377:89696: Assort 178x26.4, SAP 48x24 */
+  .story-logo { display: flex; align-items: center; height: 26.4px; }
+  .story-logo img { width: auto; height: 24px; }
+  .story-logo.assort img { height: 26.4px; }
+  .story-logo.sap img { height: 42px; }   /* Figma renders the 84x42 image unscaled inside its 48x24 slot */
+  .story-body { margin-top: 40px; display: flex; flex-direction: column; gap: 16px; }
   .story-body .industry { color: var(--fg2); }
-  .story-quote {
-    border-left: 2px solid var(--sep1);
-    padding-left: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .story-quote p { color: var(--white); }
-  .story-quote cite { font-style: normal; color: var(--fg2); white-space: nowrap; }
-  .logo-card {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 176px;
-    padding: 40px;
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .logo-card .lg { height: 24px; display: flex; align-items: center; justify-content: center; }
-  .logo-card .lg img { height: 100%; width: auto; }
-  .logo-card .lg.spacex img { width: 63px; height: 24px; }
-  .logo-card .lg.headspace { width: 103px; position: relative; }
-  .logo-card .lg.headspace .box { position: absolute; left: 0; top: 0; width: 154.5px; height: 36px; transform-origin: 0 0; transform: scale(0.6667); }
-  .logo-card .lg.headspace .mark { position: absolute; left: 0.08%; top: 0; width: 23.57%; height: 100%; }
-  .logo-card .lg.headspace .text { position: absolute; left: 30.03%; top: 27.64%; width: 67.27%; height: 57.91%; }
-  .logo-card .lg.headspace .dot { position: absolute; left: 97.92%; top: 40.07%; width: 2%; height: 8.83%; }
-  .logo-card .lg.headspace img { width: 100%; height: 100%; }
-  .logo-card .lg.salesforce img { width: 34px; height: 24px; object-fit: contain; }
-  .logo-card .lg.speak img { width: 98px; height: 24px; }
+  .story-quote { border-left: 2px solid var(--sep1); padding-left: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .story-quote p { color: var(--fg0); text-wrap: pretty; }
+  .story-quote footer { color: var(--fg2); }
 
-  /* ============ How it works (2258:60326) ============ */
-  .how .inner { display: flex; flex-direction: column; gap: 56px; }
-  .how .heading .title-group { gap: 12px; }
-  .how-grid { display: flex; gap: 16px; align-items: stretch; }
-  .how-card {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 33px;
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    overflow: clip;
+  /* ============ Apply (StartupApplySection.tsx + bytes-react Form/Input/Select) ============ */
+  .apply .inner { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+  @media (min-width: 1024px) { .apply .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; } }
+  .apply-left { display: flex; flex-direction: column; gap: 16px; }
+  .apply-left h2 {
+    font-family: var(--font-display); font-weight: 300; font-size: 30px; line-height: 1.25; letter-spacing: -0.025em;
+    color: var(--fg0); text-shadow: 0 0 14px #000;
   }
-  .how-step {
-    font-family: Menlo, var(--font-mono);
-    font-size: 12px;
-    line-height: 19.2px;
-    letter-spacing: 1.44px;
-    color: var(--cyan-400);
-    white-space: nowrap;
-  }
-  .how-card .txt { display: flex; flex-direction: column; gap: 8px; }
-  .how-card h3 {
-    padding-top: 14px;
-    height: 34px;
-    font-family: var(--font-inter);
-    font-weight: 600;
-    font-size: 17px;
-    line-height: 19.55px;
-    letter-spacing: -0.77px;
-    color: var(--fg-default);
-    white-space: nowrap;
-  }
-  .how-card .txt p {
-    padding-top: 8px;
-    font-family: var(--font-inter);
-    font-size: 14px;
-    line-height: 22.4px;
-    letter-spacing: -0.15px;
-    color: rgba(253,253,252,0.62);
-  }
-
-  /* ============ Apply (2258:60357) ============ */
-  .apply .inner { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
-  .apply-left { width: 608px; max-width: 100%; display: flex; flex-direction: column; gap: 16px; }
-  .apply-left h2 { text-shadow: 0 0 14px #000; }
-  .apply-left p { font-size: 18px; line-height: 1.5; color: var(--fg2); }
+  .apply-left h2 .accent { color: var(--cyan-400); filter: drop-shadow(0 0 8px var(--glow)); }
+  .apply-left p { color: var(--fg2); font-size: 16px; line-height: 1.7; }
+  @media (min-width: 1024px) { .apply-left h2 { font-size: 36px; } .apply-left p { font-size: 18px; line-height: 1.5; } }
   .apply-form {
-    width: 608px;
-    max-width: 768px;
-    flex: none;
-    padding: 40px;
-    background: var(--bg2);
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-card);
+    width: 100%; max-width: 768px;
+    padding: 24px; background: var(--bg2); border: 1px solid var(--sep1); border-radius: 12px;
+    display: flex; flex-direction: column;
   }
-  .form-step { display: flex; flex-direction: column; gap: 12px; }
-  .form-step .step-label {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: 1.68px;
-    text-transform: uppercase;
-    color: var(--cyan);
-    white-space: nowrap;
+  @media (min-width: 1024px) { .apply-form { padding: 40px; } }
+  .form-progress { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .form-progress .legend {
+    display: flex; justify-content: space-between; gap: 16px;
+    font-family: var(--font-mono); font-size: 12px; line-height: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg0);
   }
-  .form-step .bars { display: flex; gap: 6px; }
-  .form-step .bars span { flex: 1; height: 2px; border-radius: var(--radius-full); background: var(--sep1); }
-  .form-step .bars span.on { background: var(--cyan); }
-  .form-fields { padding-top: 32px; display: flex; flex-direction: column; gap: 20px; }
-  .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  .form-row.single { grid-template-columns: minmax(0, 1fr); }
+  .form-progress .legend .step { color: var(--cyan-400); }
+  .form-progress .bars { display: flex; gap: 6px; }
+  .form-progress .bars span { flex: 1; height: 2px; border-radius: 9999px; background: var(--sep1); overflow: hidden; position: relative; }
+  .form-progress .bars span::after { content: ""; position: absolute; inset: 0; width: 0; background: var(--cyan-400); border-radius: 9999px; transition: width 300ms ease-in-out; }
+  .form-progress .bars span.on::after { width: 100%; }
+  .form-progress .req-note { font-size: 12px; line-height: 16px; letter-spacing: 0; color: var(--fg4); }
+  .form-steps { position: relative; }
+  .form-step { display: none; flex-direction: column; gap: 16px; }
+  .form-step.active { display: flex; animation: step-in 200ms var(--ease-out); }
+  @keyframes step-in { from { opacity: 0; } to { opacity: 1; } }
+  .form-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .form-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .field { display: flex; flex-direction: column; gap: 8px; }
-  .field label { font-weight: 500; font-size: 14px; line-height: 20px; letter-spacing: 0.14px; color: var(--fg1); white-space: nowrap; }
-  .field label.sm { font-weight: 700; font-size: 12px; line-height: 16px; letter-spacing: 0; }
-  .req { color: var(--cyan-deep); }
-  .field input {
-    height: 32px;
-    padding: 4px 12px;
-    background: var(--bg1);
-    border: 1px solid var(--sep2);
-    border-radius: var(--radius-default);
-    font-family: inherit;
-    font-size: 14px;
-    letter-spacing: 0.14px;
-    color: var(--fg1);
-    outline: none;
-    width: 100%;
+  .field label { color: var(--fg1); font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.01em; }
+  .field label.input-label { font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: 0; }
+  .req { color: var(--cyan-500); }
+  .field input, .field textarea, .field select {
+    width: 100%; font: inherit; color: var(--fg2); border-radius: 4px; border: 1px solid var(--sep2); background: var(--bg1);
+    transition: color 150ms var(--ease-std), background-color 150ms var(--ease-std), border-color 150ms var(--ease-std);
   }
-  .field input::placeholder { color: var(--fg4); }
-  .field .select {
-    height: 36px;
-    padding: 8px 12px;
-    background: var(--bg2);
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-default);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.14px;
-    color: var(--fg1);
-    width: 100%;
-    text-align: left;
+  .field input { height: 28px; padding: 4px 12px; font-size: 14px; line-height: 20px; letter-spacing: 0.01em; }
+  .field input[type="date"] { color-scheme: dark; }
+  .field textarea { padding: 8px 12px; font-size: 12px; line-height: 16px; letter-spacing: 0; resize: vertical; min-height: 84px; }
+  .field input::placeholder, .field textarea::placeholder { color: var(--fg4); }
+  .field select {
+    height: 32px; padding: 0 32px 0 12px; appearance: none; -webkit-appearance: none;
+    background: var(--bg0) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2.25 3.75H3.75V5.25H2.25V3.75ZM5.25 6.75V5.25H3.75V6.75H5.25ZM6.75 6.75V8.25H5.25V6.75H6.75ZM8.25 5.25V6.75H6.75V5.25H8.25ZM8.25 5.25V3.75H9.75V5.25H8.25Z' fill='%23CCCCCC'/%3E%3C/svg%3E") no-repeat right 12px center;
+    font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0.01em; color: var(--fg1); cursor: pointer;
   }
-  .field .select img { width: 12px; height: 12px; }
-  .field .help { font-size: 12px; line-height: 16px; color: var(--fg4); }
-  .form-footer { padding-top: 8px; }
-  .form-footer .bar {
-    border-top: 1px solid var(--sep1);
-    padding-top: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .field select.placeholder { color: var(--fg3); }
+  .field select option { color: var(--fg1); background: var(--bg0); }
+  .field select:hover { background-color: var(--bg3); }
+  .field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--cyan-400); }
+  .field .help { font-size: 12px; line-height: 16px; letter-spacing: 0; color: var(--fg4); }
+  .field .msg { display: none; font-size: 12px; line-height: 16px; letter-spacing: 0; color: #f87171; }
+  .field.invalid .msg { display: block; }
+  .field.invalid input, .field.invalid textarea, .field.invalid select { border-color: #f87171; }
+  .check-row { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; color: var(--fg2); font-size: 14px; line-height: 20px; letter-spacing: 0.01em; }
+  .check-row input { position: absolute; opacity: 0; width: 16px; height: 16px; margin: 0; }
+  .check-row .box {
+    flex: none; width: 16px; height: 16px; margin-top: 2px; border-radius: 4px; border: 1px solid var(--sep2); background: var(--bg1);
+    display: inline-flex; align-items: center; justify-content: center; transition: all 150ms var(--ease-std);
   }
-  .form-footer .left { display: flex; align-items: center; gap: 12px; }
-  .btn-back {
-    height: 36px;
-    padding: 8px 12px;
-    background: var(--bg2);
-    border: 1px solid var(--sep1);
-    border-radius: var(--radius-default);
-    font-weight: 600;
-    font-size: 16px;
-    line-height: 27.2px;
-    letter-spacing: 0.16px;
-    color: var(--fg1);
-    display: inline-flex;
-    align-items: center;
+  .check-row input:checked + .box { background: var(--cyan-400); border-color: var(--cyan-400); }
+  .check-row input:focus-visible + .box { box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--cyan-400); }
+  .check-row .box svg { width: 14px; height: 14px; color: var(--bg0); opacity: 0; }
+  .check-row input:checked + .box svg { opacity: 1; }
+  .check-row a { color: var(--cyan-500); }
+  .check-row a:hover { text-decoration: underline; }
+  .check-row.invalid .box { border-color: #f87171; }
+  .form-footer {
+    margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--sep1);
+    display: flex; flex-direction: column-reverse; gap: 12px;
   }
-  .form-footer .note { font-size: 14px; line-height: 20px; letter-spacing: 0.14px; color: var(--fg4); white-space: nowrap; }
-  .btn-next {
-    padding: 8px 32px;
-    background: var(--cyan);
-    border: 0;
-    border-radius: var(--radius-lg);
-    font-weight: 600;
-    font-size: 16px;
-    line-height: 27.2px;
-    letter-spacing: 0.16px;
-    color: var(--bg1);
-  }
+  @media (min-width: 640px) { .form-footer { flex-direction: row; align-items: center; justify-content: space-between; } }
+  .form-footer .left { display: flex; align-items: center; gap: 12px; min-height: 1px; }
+  .btn-next { height: auto; padding: 12px 32px; border-radius: 6px; font-size: 16px; line-height: 20px; font-weight: 600; background: var(--cyan-400); color: var(--bg1); transition: all 150ms var(--ease-std); }
+  .btn-next:hover { background: var(--cyan-600); }
+  .btn-next:active { transform: scale(0.99); background: var(--cyan-400); }
+  .form-success { display: none; padding: 32px 0; }
+  .apply-form.done .form-success { display: block; animation: step-in 500ms var(--ease-out); }
+  .apply-form.done .form-body { display: none; }
+  .form-success h3 { font-family: var(--font-sans); font-weight: 500; font-size: 20px; line-height: 32px; color: var(--cyan-400); }
+  .form-success p { margin-top: 12px; font-size: 14px; line-height: 20px; color: var(--fg2); }
+  .form-success a { color: var(--cyan-500); }
+  .form-success a:hover { text-decoration: underline; }
 
-  /* ============ FAQ (2258:60441) ============ */
-  .faq { padding: 64px 69px; }
-  .faq .inner { display: grid; grid-template-columns: 416px 1fr; gap: 16px; }
-  .faq h2 {
-    font-family: var(--font-display);
-    font-weight: 300;
-    font-size: 36px;
-    line-height: 40px;
-    letter-spacing: -0.53px;
-    color: var(--white);
-    white-space: nowrap;
+  /* ============ FAQ (components/sections/SectionFaq.tsx + Collapsible.tsx) ============ */
+  .faq { padding-top: 64px; padding-bottom: 0; }
+  .faq .inner { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 1024px) {
+    .faq { padding-top: 128px; }
+    .faq .inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .faq-list { grid-column: span 2; }
   }
-  .faq-list { width: 848px; max-width: 100%; justify-self: center; }
-  .faq-list details { border-top: 1px solid var(--sep1); }
-  .faq-list details:last-child { border-bottom: 1px solid var(--sep1); }
+  .faq-list { margin: 0 -24px; }
+  @media (min-width: 768px) { .faq-list { margin: 0; } }
+  .faq-list details { width: 100%; }
   .faq-list summary {
-    list-style: none;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 24px 12px 24px 24px;
-    cursor: pointer;
+    list-style: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    padding: 24px 12px 24px 24px; cursor: pointer;
+    border-top: 1px solid var(--sep1); color: var(--fg1);
+    font-size: 18px; line-height: 28px; letter-spacing: 0; text-wrap: pretty;
+    transition: color 150ms var(--ease-std), background-color 150ms var(--ease-std);
   }
   .faq-list summary::-webkit-details-marker { display: none; }
-  .faq-list summary span {
-    flex: 1;
-    font-size: 18px;
-    line-height: 28px;
-    color: var(--fg1);
+  .faq-list details:last-child summary, .faq-list details[open] summary { border-bottom: 1px solid var(--sep1); }
+  .faq-list summary:hover, .faq-list summary:focus, .faq-list details[open] summary { background: var(--bg2); }
+  .faq-list summary:hover, .faq-list summary:focus { color: var(--cyan-400); }
+  .faq-list summary .q { flex: 1; align-self: center; }
+  .faq-list summary svg { width: 32px; height: 32px; flex: none; transition: transform 200ms var(--ease-out); }
+  .faq-list details[open] summary svg { transform: rotate(180deg); }
+  .faq-list details::details-content {
+    height: 0; opacity: 0; overflow: clip;
+    transition: height 250ms ease-out, opacity 250ms ease-out, content-visibility 250ms ease-out allow-discrete;
   }
-  .faq-list summary img { width: 32px; height: 32px; flex: none; transition: transform 0.2s ease; }
-  .faq-list details[open] summary img { transform: rotate(180deg); }
-  .faq-list .answer { padding: 0 24px 24px; }
-  .faq-list .answer p { font-size: 16px; line-height: 24px; color: var(--fg2); max-width: 800px; }
-  .faq-list .answer p + p { padding-top: 16px; }
-  .faq-list .answer a { text-decoration: underline; text-underline-position: from-font; }
-  .faq-list .answer a img { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-left: 2px; }
+  .faq-list details[open]::details-content { height: auto; opacity: 1; }
+  .faq-list .answer { padding: 24px; color: var(--fg2); display: flex; flex-direction: column; gap: 16px; }
+  .faq-list .answer p { line-height: 1.7; }
+  .faq-list .answer a {
+    color: currentColor; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em;
+    transition: color 150ms var(--ease-std);
+  }
+  .faq-list .answer a:hover, .faq-list .answer a:focus { color: var(--cyan-400); }
+  .faq-list .answer a svg { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-left: 2px; }
 
-  /* ============ Footer (2258:60504) ============ */
-  .footer { padding: 64px 69px; }
-  .footer .inner { display: flex; justify-content: space-between; height: 304px; }
-  .foot-brand { min-width: 208px; display: flex; flex-direction: column; height: 100%; }
-  .foot-brand .logo { height: 27px; padding-bottom: 24px; box-sizing: content-box; }
+  /* ============ Footer (packages/bytes-react Footer.tsx) ============ */
+  .footer { margin-top: 128px; }
+  .footer .upper { border-top: 1px solid var(--sep1); padding: 64px 24px; }
+  .footer .upper .inner { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
+  @media (min-width: 1024px) { .footer .upper .inner { flex-direction: row; } }
+  .foot-brand { min-width: 208px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
   .foot-brand .logo img { width: 20px; height: 20px; }
-  .foot-brand p { font-size: 14px; line-height: 20px; letter-spacing: 0.14px; color: var(--fg3); width: 352px; max-width: 100%; padding-bottom: 24px; }
-  .foot-badges { flex: 1; display: flex; align-items: flex-end; gap: 16px; }
-  .foot-badges img { height: 40px; opacity: 0.8; }
-  .foot-badges img.hipaa { width: 45.45px; }
-  .foot-cols { width: 896px; max-width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .foot-col { display: flex; flex-direction: column; }
-  .foot-col h4 {
-    height: 32px;
-    padding-bottom: 16px;
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    color: var(--fg3);
-    white-space: nowrap;
-  }
+  .foot-brand p { color: var(--fg3); font-size: 14px; line-height: 20px; text-wrap: balance; max-width: 352px; }
+  .foot-badges { display: flex; align-items: flex-end; gap: 16px; margin-top: auto; padding-top: 24px; }
+  .foot-badges img { height: 36px; width: auto; opacity: 0.8; }
+  .foot-badges a:hover img { opacity: 1; }
+  .foot-cols { width: 100%; max-width: 896px; display: grid; grid-template-columns: 1fr; column-gap: 16px; row-gap: 48px; }
+  @media (min-width: 640px) { .foot-cols { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 768px) { .foot-cols { grid-template-columns: 1fr 1fr 1fr auto; } }
+  .foot-col { display: flex; flex-direction: column; gap: 16px; color: var(--fg0); }
+  .foot-col h4 { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--fg3); }
   .foot-col h4.bold { font-weight: 700; }
-  .foot-col a { display: block; height: 36px; font-size: 14px; line-height: 20px; letter-spacing: 0.14px; color: var(--white); white-space: nowrap; }
-  .foot-col a:last-of-type { height: 20px; }
-  .foot-touch { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 32px; }
+  .foot-col a { display: flex; gap: 8px; align-items: baseline; font-size: 14px; line-height: 20px; letter-spacing: 0.01em; color: var(--fg0); }
+  .foot-col a:hover { text-decoration: underline; }
+  .foot-touch { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
   .foot-social { display: flex; align-items: center; gap: 12px; }
-  .foot-social a { height: auto; padding: 2px; display: flex; }
-  .foot-social a img { width: 16px; height: 16px; }
-  .foot-social a img.yt { width: 20px; height: 20px; }
-
-  /* ============ Responsive ============ */
-  @media (max-width: 1280px) {
-    .nav { padding: 0 32px; }
-    .section, .hero, .faq, .footer { padding-left: 32px; padding-right: 32px; }
-    .plat-card { width: calc(50% - 8px); }
-    .elig-right { display: none; }
-    .apply .inner { flex-direction: column; align-items: flex-start; }
-    .apply-form { width: 100%; }
-    .faq .inner { grid-template-columns: 1fr; }
-    .faq-list { width: 100%; }
-  }
-  @media (max-width: 900px) {
-    .nav-links, .nav-gh { display: none; }
-    .nav-main { left: 110px; }
-    .hero { padding: 96px 24px; }
-    .logo-band .grid { grid-template-columns: repeat(5, minmax(160px, 1fr)); overflow-x: auto; }
-    .included-grid, .how-grid, .story-row { flex-direction: column; }
-    .story-card, .logo-card { flex: none; }
-    .uc-grid { grid-template-columns: 1fr; }
-    .plat-card { width: 100%; }
-    .elig-left { width: 100%; }
-    .form-row { grid-template-columns: 1fr; }
-    .footer .inner { flex-direction: column; height: auto; gap: 48px; }
-    .foot-cols { grid-template-columns: 1fr; gap: 32px; }
-    .foot-badges { padding-top: 24px; }
-    .stories .section-sub { white-space: normal; }
-    .how-card h3 { white-space: normal; height: auto; }
-    .form-footer .bar { flex-wrap: wrap; gap: 12px; }
-    .form-footer .left { flex-wrap: wrap; }
-    .form-footer .note { white-space: normal; }
-    .field label { white-space: normal; }
-  }
+  .foot-social a { padding: 2px; color: var(--fg2); transition: color 150ms var(--ease-std); }
+  .foot-social a:hover { color: var(--fg0); }
+  .foot-social svg { width: 16px; height: 16px; }
+  .foot-social svg.yt { width: 20px; height: 20px; }
+  .footer .lower { border-top: 1px solid var(--sep1); padding: 12px 24px 64px; }
+  .footer .lower .inner { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; color: var(--fg3); font-size: 12px; line-height: 16px; letter-spacing: 0; }
+  @media (min-width: 1024px) { .footer .lower .inner { flex-direction: row; justify-content: space-between; } }
+  .footer .lower a { white-space: nowrap; }
+  .footer .lower a:hover { text-decoration: underline; }
+  .footer .lower .pipe { margin: 0 4px; }
+  .footer .status { display: inline-flex; align-items: center; gap: 8px; }
+  .footer .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #3ecf8e; }
 </style>
 </head>
 <body>
 
-<!-- ==================== Nav (Figma 2258:57425) ==================== -->
+<!-- ==================== Header (components/layout/Header.tsx) ==================== -->
 <header class="nav" id="top">
   <div class="inner">
     <a class="nav-logo" href="#" aria-label="LiveKit home">
       <img src="assets/figma-2258/nav-logo-livekit.svg" alt="LiveKit" width="90" height="21" />
     </a>
-    <div class="nav-main">
-      <nav class="nav-links" aria-label="Main">
-        <a class="nav-link" href="#">Products <img src="assets/figma-2258/nav-chevron.svg" alt="" /></a>
-        <a class="nav-link" href="#">Resources <img src="assets/figma-2258/nav-chevron.svg" alt="" /></a>
-        <a class="nav-link" href="#">Company <img src="assets/figma-2258/nav-chevron.svg" alt="" /></a>
-        <a class="nav-link" href="#">Pricing</a>
-      </nav>
-      <div class="nav-right">
-        <a class="nav-gh" href="#">
-          <img class="gh-icon" src="assets/figma-2258/nav-github.svg" alt="GitHub" />
-          <span>livekit</span>
-          <span class="sep">/</span>
-          <span>agents</span>
-          <span class="stars"><img src="assets/figma-2258/nav-star.svg" alt="" />13.0K</span>
-        </a>
-        <a class="btn btn-secondary" href="#">Contact sales</a>
-        <a class="btn btn-primary" href="#">Start building</a>
-      </div>
+    <nav class="nav-links" aria-label="Main">
+      <a class="nav-link" href="#">Products <img src="assets/figma-2258/nav-chevron.svg" alt="" /></a>
+      <a class="nav-link" href="#">Resources <img src="assets/figma-2258/nav-chevron.svg" alt="" /></a>
+      <a class="nav-link" href="#">Company <img src="assets/figma-2258/nav-chevron.svg" alt="" /></a>
+      <a class="nav-link" href="#">Pricing</a>
+    </nav>
+    <div class="nav-right">
+      <a class="nav-gh" href="#">
+        <img class="gh-icon" src="assets/figma-2258/nav-github.svg" alt="GitHub" />
+        <span>livekit</span>
+        <span class="sep">/</span>
+        <span>agents</span>
+        <span class="stars"><img src="assets/figma-2258/nav-star.svg" alt="" />13.0K</span>
+      </a>
+      <a class="btn btn-outline focus-ring" href="#">Contact sales</a>
+      <a class="btn btn-primary focus-ring" href="#">Start building</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-nav">
+      <svg class="ico-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="ico-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-nav" id="mobile-nav">
+    <a class="item" href="#">Products</a>
+    <a class="item" href="#">Resources</a>
+    <a class="item" href="#">Company</a>
+    <a class="item" href="#">Pricing</a>
+    <div class="actions">
+      <a class="btn btn-outline" href="#">Contact sales</a>
+      <a class="btn btn-primary" href="#">Start building</a>
+    </div>
+    <div class="social">
+      <a href="#" aria-label="GitHub"><img src="assets/figma-2258/foot-github.svg" alt="" /></a>
+      <a href="#" aria-label="X"><img src="assets/figma-2258/foot-x.svg" alt="" /></a>
+      <a href="#" aria-label="Slack"><img src="assets/figma-2258/foot-slack.svg" alt="" /></a>
+      <a href="#" aria-label="YouTube"><img src="assets/figma-2258/foot-youtube.svg" alt="" /></a>
     </div>
   </div>
 </header>
 
-<!-- ==================== Hero (Figma 2258:57489) ==================== -->
+<!-- ==================== Hero (Figma 2258:57489; shader wordmark) ==================== -->
 <section class="hero" id="hero">
   <h1 class="wordmark">
     <img src="assets/figma-2258/hero-wordmark.png" alt="Startups" width="800" height="131" />
@@ -836,7 +618,7 @@
   </h1>
   <div class="hero-body">
     <div class="hero-copy">
-      <p class="hero-sub">Get up to $19K in infrastructure and inference credits, plus the realtime platform to help you launch and scale</p>
+      <p class="hero-sub">Get up to $23K in infrastructure and inference credits, plus the realtime platform to help you launch and scale</p>
       <ul class="hero-chips" aria-label="Who it&rsquo;s for">
         <li>For early-stage teams</li>
         <li>Under 50 employees</li>
@@ -844,33 +626,58 @@
       </ul>
     </div>
     <div class="hero-actions">
-      <a class="btn-hero btn-hero-primary" href="#apply">Apply now</a>
-      <a class="btn-hero btn-hero-secondary" href="#included">See benefits</a>
+      <a class="cta focus-ring" href="#apply"><span class="lbl"><span class="ghost">Apply now</span><span class="stack"><span class="dark" aria-hidden="true">Apply now</span><span class="light">Apply now</span></span></span></a>
+      <a class="cta-secondary focus-ring" href="#included">See benefits</a>
     </div>
   </div>
 </section>
 
-<!-- ==================== Logo band (Figma 2258:57506) ==================== -->
+<!-- ==================== Logo ribbon (SectionLogoRibbon, default rotating mode: 5 columns x 4 logos, 3.5s) ==================== -->
 <div class="logo-band" aria-label="Trusted by">
   <div class="grid">
-    <img src="assets/figma-2258/logo-spacex.svg" alt="SpaceX" />
-    <img src="assets/figma-2258/logo-nvidia.svg" alt="NVIDIA" />
-    <img src="assets/figma-2258/logo-skydio.svg" alt="Skydio" />
-    <img src="assets/figma-2258/logo-foxglove.svg" alt="Foxglove" />
-    <img src="assets/figma-2258/logo-nuro.svg" alt="Nuro" />
+    <div class="cell">
+      <div class="slot"><img src="assets/logos/spacex.svg" alt="SpaceX" style="height:20px" /></div>
+      <div class="slot"><img src="assets/logos/open-ai.svg" alt="OpenAI" style="height:24px" /></div>
+      <div class="slot"><img src="assets/logos/oracle.svg" alt="Oracle" style="height:12.8px" /></div>
+      <div class="slot"><img src="assets/logos/retell.svg" alt="Retell" style="height:19.2px" /></div>
+    </div>
+    <div class="cell">
+      <div class="slot"><img src="assets/logos/nvidia.svg" alt="NVIDIA" style="height:20px" /></div>
+      <div class="slot"><img src="assets/logos/x-ai.svg" alt="xAI" style="height:24px" /></div>
+      <div class="slot"><img src="assets/logos/spotify.svg" alt="Spotify" style="height:22.4px" /></div>
+      <div class="slot"><img src="assets/logos/cresta.svg" alt="Cresta" style="height:19.2px" /></div>
+    </div>
+    <div class="cell">
+      <div class="slot"><img src="assets/logos/skydio.svg" alt="Skydio" style="height:22.4px" /></div>
+      <div class="slot"><img src="assets/logos/salesforce.svg" alt="Salesforce" style="height:40px" /></div>
+      <div class="slot"><img src="assets/logos/whatnot.svg" alt="Whatnot" style="height:16px" /></div>
+      <div class="slot"><img src="assets/logos/micro1.svg" alt="micro1" style="height:17.6px" /></div>
+    </div>
+    <div class="cell">
+      <div class="slot"><img src="assets/logos/foxglove.svg" alt="Foxglove" style="height:28px" /></div>
+      <div class="slot"><img src="assets/logos/headspace.svg" alt="Headspace" style="height:28px" /></div>
+      <div class="slot"><img src="assets/logos/decagon.svg" alt="Decagon" style="height:28px" /></div>
+      <div class="slot"><img src="assets/logos/assort-health.svg" alt="Assort Health" style="height:20px" /></div>
+    </div>
+    <div class="cell">
+      <div class="slot"><img src="assets/logos/nuro.svg" alt="Nuro" style="height:20px" /></div>
+      <div class="slot"><img src="assets/logos/tesla.svg" alt="Tesla" style="height:12px" /></div>
+      <div class="slot"><img src="assets/logos/zocdoc.svg" alt="Zocdoc" style="height:32px" /></div>
+      <div class="slot"><img src="assets/logos/coursera.svg" alt="Coursera" style="height:12px" /></div>
+    </div>
   </div>
 </div>
 
 <!-- ==================== What's included (Figma 2258:61620) ==================== -->
-<section class="section included" id="included">
+<section class="section included anchor" id="included">
   <div class="inner">
-    <div class="heading">
-      <div class="title-group">
-        <p class="eyebrow">What&rsquo;s included</p>
-        <h2 class="display">Up to <span class="accent">$23K</span> to build and scale</h2>
+    <header class="sh">
+      <p class="eyebrow">What&rsquo;s included</p>
+      <div class="sh-body">
+        <h2>Up to <span class="accent">$23K</span> to build and scale</h2>
+        <p class="sub"><span>Reduce your early infrastructure costs and spend more time building, testing, and finding product-market fit.</span></p>
       </div>
-      <p class="section-sub">Reduce your early infrastructure costs and spend more time building, testing, and finding product-market fit.</p>
-    </div>
+    </header>
 
     <div class="included-grid">
       <article class="inc-card">
@@ -940,69 +747,71 @@
   </div>
 </section>
 
-<!-- ==================== Eligibility (Figma 2258:57647) ==================== -->
+<!-- ==================== Eligibility (StartupEligibilitySection) ==================== -->
 <section class="section eligibility" id="eligibility">
   <div class="inner">
     <div class="elig-left">
-      <div class="heading">
-        <div class="title-group">
-          <p class="eyebrow bold">Eligibility</p>
-          <h2 class="display">Built for <span class="accent">early-stage teams</span></h2>
+      <header class="sh">
+        <p class="eyebrow">Eligibility</p>
+        <div class="sh-body">
+          <h2>Built for <span class="accent">early-stage teams</span></h2>
+          <p class="sub"><span>To qualify, your startup should meet the following criteria.</span></p>
         </div>
-        <p class="section-sub">To qualify, your startup should meet the following criteria.</p>
-      </div>
+      </header>
       <ul class="elig-list">
-        <li><img src="assets/figma-2258/elig-check.svg" alt="" /><span>Voice, video, or physical AI is core to your product</span></li>
-        <li><img src="assets/figma-2258/elig-check.svg" alt="" /><span>Fewer than 50 employees</span></li>
-        <li><img src="assets/figma-2258/elig-check.svg" alt="" /><span>A live website with a publicly identifiable founding team</span></li>
-        <li><img src="assets/figma-2258/elig-check.svg" alt="" /><span>Building a product for external users</span></li>
-        <li><img src="assets/figma-2258/elig-check.svg" alt="" /><span>Incorporated, or actively incorporating</span></li>
-        <li><img src="assets/figma-2258/elig-check.svg" alt="" /><span>In production, or launching within 6 months</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Voice, video, or physical AI is core to your product</li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Fewer than 50 employees</li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>A live website with a publicly identifiable founding team</li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Building a product for external users</li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Incorporated, or actively incorporating</li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>In production, or launching within 6 months</li>
       </ul>
-      <div><a class="btn-apply" href="#apply">Apply now</a></div>
+      <div><a class="cta focus-ring" href="#apply"><span class="lbl"><span class="ghost">Apply now</span><span class="stack"><span class="dark" aria-hidden="true">Apply now</span><span class="light">Apply now</span></span></span></a></div>
     </div>
-    <div class="elig-right" aria-hidden="true">
-      <img src="assets/figma-2258/eligibility-illustration@2x.png" alt="" />
-    </div>
+  </div>
+  <div class="elig-art" aria-hidden="true">
+    <img class="grid" src="assets/figma-2258/elig-grid.svg" alt="" />
+    <img class="tile" src="assets/figma-2258/elig-tile@2x.png" alt="" />
+    <img class="corners" src="assets/figma-2258/elig-corners@2x.png" alt="" />
   </div>
 </section>
 
-<!-- ==================== Why LiveKit (Figma 2258:58206) ==================== -->
+<!-- ==================== Why LiveKit (StartupWhyLiveKitSection) ==================== -->
 <section class="section platform" id="platform">
   <div class="inner">
-    <div class="heading">
-      <div class="title-group">
-        <p class="eyebrow">Why LiveKit</p>
-        <h2 class="display body-font">The platform for <span class="accent">realtime AI</span></h2>
+    <header class="sh">
+      <p class="eyebrow">Why LiveKit</p>
+      <div class="sh-body">
+        <h2>The platform for <span class="accent">realtime AI</span></h2>
+        <p class="sub"><span>Everything you need to build, launch, and scale voice, video, and physical AI.</span></p>
       </div>
-      <p class="section-sub">Everything you need to build, launch, and scale voice, video, and physical AI.</p>
-    </div>
+    </header>
     <div class="plat-grid">
       <article class="plat-card">
-        <img src="assets/figma-2258/plat-rocket.svg" alt="" />
-        <div class="txt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 9.5 9 15M4.9 14.6l-1.3 3.9 3.9-1.3M5.3 11.4 3 9.5l3.5-.8M12.6 18.7l1.9 2.3.8-3.5M8.4 8.4c3.5-4.6 8-5.5 12.6-5.4-.1 4.6-1 9.1-5.6 12.6-1.6 1.2-3.2 1.8-4.8 2.1L7.3 16.4 4.9 13c.3-1.6.9-3.2 2.1-4.8l1.4.2Z"/></svg>
+        <div>
           <h3>From prototype to production</h3>
           <p>Build with open-source SDKs, deploy to LiveKit Cloud, and connect models and telephony.</p>
         </div>
       </article>
       <article class="plat-card">
-        <img src="assets/figma-2258/plat-realtime.svg" alt="" />
-        <div class="txt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg>
+        <div>
           <h3>Built for realtime</h3>
           <p>Deliver responsive voice and video on infrastructure designed for low-latency interaction.</p>
         </div>
       </article>
       <article class="plat-card">
-        <img src="assets/figma-2258/plat-code.svg" alt="" />
-        <div class="txt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+        <div>
           <h3>Your code, your models</h3>
           <p>Control how your product works and choose the STT, LLM, and TTS providers that fit your needs.</p>
         </div>
       </article>
       <article class="plat-card">
-        <img src="assets/figma-2258/plat-pulse.svg" alt="" />
-        <div class="txt">
-          <h3>Operate with confidence</h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.5-6 4 12 2.5-6h5"/></svg>
+        <div>
+          <h3>See every session</h3>
           <p>Scale deployments, monitor sessions, and troubleshoot with built-in observability.</p>
         </div>
       </article>
@@ -1010,292 +819,369 @@
   </div>
 </section>
 
-<!-- ==================== What you can build (Figma 2258:58243) ==================== -->
-<section class="section build" id="use-cases">
-  <div class="inner">
-    <div class="heading">
-      <div class="title-group">
-        <p class="eyebrow">What you can build</p>
-        <h2 class="display body-font">Build AI that can <span class="accent">see, hear, and act</span></h2>
-      </div>
-    </div>
-    <div class="uc-grid">
-      <a class="uc-card" href="#">
-        <div class="art"><img src="assets/figma-2258/usecase-voice@2x.png" alt="" width="632" height="331" /></div>
-        <div class="txt">
-          <h3>Voice AI Agents</h3>
-          <p>Build agents that listen, reason, and respond in realtime.</p>
-        </div>
-      </a>
-      <a class="uc-card" href="#">
-        <div class="art"><img src="assets/figma-2258/usecase-calling@2x.png" alt="" width="632" height="331" /></div>
-        <div class="txt">
-          <h3>AI-Powered Calling</h3>
-          <p>Connect AI agents to phone calls with built-in telephony.</p>
-        </div>
-      </a>
-      <a class="uc-card" href="#">
-        <div class="art"><img src="assets/figma-2258/usecase-multimodal@2x.png" alt="" width="632" height="331" /></div>
-        <div class="txt">
-          <h3>Multimodal AI</h3>
-          <p>Bring voice, video, and AI together in one realtime experience.</p>
-        </div>
-      </a>
-      <a class="uc-card" href="#">
-        <div class="art"><img src="assets/figma-2258/usecase-physical@2x.png" alt="" width="632" height="331" /></div>
-        <div class="txt">
-          <h3>Physical AI</h3>
-          <p>Power realtime interactions for robots and connected devices.</p>
-        </div>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== Customer stories (Figma 2258:60199) ==================== -->
+<!-- ==================== Customer stories (StartupStoriesSection) ==================== -->
 <section class="section stories" id="customers">
   <div class="inner">
-    <div class="heading">
-      <div class="title-group">
-        <p class="eyebrow">Customer stories</p>
-        <h2 class="display">From startup to <span class="accent">scale</span></h2>
+    <header class="sh">
+      <p class="eyebrow">Customer stories</p>
+      <div class="sh-body">
+        <h2>From startup to <span class="accent">scale</span></h2>
+        <p class="sub"><span>See how teams of every size build and scale realtime AI with LiveKit.</span></p>
       </div>
-      <p class="section-sub">See how teams of every size build and scale realtime AI with LiveKit.</p>
-    </div>
-    <div class="story-rows">
-      <div class="story-row">
-        <article class="story-card">
-          <div class="story-logo assort"><img src="assets/figma-2258/cust-assort.svg" alt="Assort Health" /></div>
-          <div class="story-body">
-            <p class="industry">Healthcare</p>
-            <blockquote class="story-quote">
-              <p>"LiveKit enables us to very granularly fine-tune our agent code for every workflow and use any model provider. No other platform gives us this level of control."</p>
-              <cite>Jeffery Liu, Founder &amp; Co-CEO</cite>
-            </blockquote>
-          </div>
-        </article>
-        <article class="story-card">
-          <div class="story-logo polymath" aria-label="Polymath Robotics">
-            <div class="box">
-              <div class="mark"><img src="assets/figma-2258/cust-polymath-mark.svg" alt="" /></div>
-              <div class="text"><img src="assets/figma-2258/cust-polymath-text.svg" alt="" /></div>
-            </div>
-          </div>
-          <div class="story-body">
-            <p class="industry">Robotics</p>
-            <blockquote class="story-quote">
-              <p>"Low-latency video streaming is existential for any robotics company. We just couldn&rsquo;t have continued to build our platform if we didn&rsquo;t have LiveKit."</p>
-              <cite>Ilia Baranov, Co-Founder &amp; CTO</cite>
-            </blockquote>
-          </div>
-        </article>
-      </div>
-      <div class="story-row">
-        <div class="logo-card"><div class="lg spacex"><img src="assets/figma-2258/cust-spacex.svg" alt="SpaceX" /></div></div>
-        <div class="logo-card">
-          <div class="lg headspace" aria-label="Headspace">
-            <div class="box">
-              <div class="mark"><img src="assets/figma-2258/cust-headspace-mark.svg" alt="" /></div>
-              <div class="text"><img src="assets/figma-2258/cust-headspace-text.svg" alt="" /></div>
-              <div class="dot"><img src="assets/figma-2258/cust-headspace-dot.svg" alt="" /></div>
-            </div>
-          </div>
-        </div>
-        <div class="logo-card"><div class="lg salesforce"><img src="assets/figma-2258/cust-salesforce.svg" alt="Salesforce" /></div></div>
-        <div class="logo-card"><div class="lg speak"><img src="assets/figma-2258/cust-speak.svg" alt="Speak" /></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== How it works (Figma 2258:60326) ==================== -->
-<section class="section how" id="how-it-works">
-  <div class="inner">
-    <div class="heading">
-      <div class="title-group">
-        <p class="eyebrow bold">How it works</p>
-        <h2 class="display">From application to <span class="accent">activation</span></h2>
-      </div>
-    </div>
-    <div class="how-grid">
-      <article class="how-card">
-        <p class="how-step">01 / APPLY</p>
-        <div class="txt">
-          <h3>Submit your application</h3>
-          <p>Tell us about your team, company, and what you&rsquo;re building. It takes about five minutes.</p>
+    </header>
+    <div class="story-grid">
+      <article class="story-card">
+        <div class="story-logo assort"><img src="assets/figma-2258/cust-assort.svg" alt="Assort Health" /></div>
+        <div class="story-body">
+          <p class="industry">Healthcare</p>
+          <blockquote class="story-quote">
+            <p>&ldquo;LiveKit enables us to very granularly fine-tune our agent code for every workflow and use any model provider. No other platform gives us this level of control.&rdquo;</p>
+            <footer>Jeffery Liu, Founder &amp; Co-CEO</footer>
+          </blockquote>
         </div>
       </article>
-      <article class="how-card">
-        <p class="how-step">02 / REVIEW</p>
-        <div class="txt">
-          <h3>Check your eligibility</h3>
-          <p>We&rsquo;ll check that your startup meets the program criteria.</p>
-        </div>
-      </article>
-      <article class="how-card">
-        <p class="how-step">03 / ACTIVATE</p>
-        <div class="txt">
-          <h3>Activate your benefits</h3>
-          <p>Once approved, get access to Cloud Scale, cloud credits, and inference credits.</p>
+      <article class="story-card">
+        <div class="story-logo sap"><img src="assets/figma-2258/cust-sap.png" alt="SAP" /></div>
+        <div class="story-body">
+          <p class="industry">Enterprise Software</p>
+          <blockquote class="story-quote">
+            <p>&ldquo;Voice makes AI feel less like a tool and more like a natural part of the experience. LiveKit gives us the scalable foundation to bring those voice experiences to life at enterprise scale, without sacrificing flexibility.&rdquo;</p>
+            <footer>Jonathan von R&uuml;eden, Chief AI Officer of SAP SE</footer>
+          </blockquote>
         </div>
       </article>
     </div>
   </div>
 </section>
 
-<!-- ==================== Apply (Figma 2258:60357) ==================== -->
-<section class="section apply" id="apply">
+<!-- ==================== Apply (StartupApplySection + StartupForm) ==================== -->
+<section class="section apply anchor" id="apply">
   <div class="inner">
     <div class="apply-left">
-      <h2 class="display">Apply to the LiveKit<br /><span class="accent">Startup Program</span></h2>
-      <p>Tell us a little about your team and what you&rsquo;re building. The application only takes a few minutes&mdash;no pitch deck required.</p>
+      <h2>Apply to the <span class="accent">LiveKit<br />Startup Program</span></h2>
+      <p>Tell us a little about your team and what you&rsquo;re building. The application takes a few minutes. No pitch deck required. Once approved, you&rsquo;ll get full access to program benefits.</p>
     </div>
-    <form class="apply-form" onsubmit="return false;">
-      <div class="form-step">
-        <p class="step-label">Step 2 of 4 &middot; Company</p>
-        <div class="bars" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span><span></span></div>
-      </div>
-      <div class="form-fields">
-        <div class="form-row">
-          <div class="field">
-            <label class="sm" for="company">Company name <span class="req">*</span></label>
-            <input id="company" type="text" placeholder="Ada Lovelace" />
-          </div>
-          <div class="field">
-            <label class="sm" for="website">Website <span class="req">*</span></label>
-            <input id="website" type="url" placeholder="https://yourstartup.ai" />
-          </div>
+    <form class="apply-form" id="startup-form" novalidate>
+      <div class="form-body">
+        <div class="form-progress">
+          <div class="legend"><span class="step" data-legend>About you</span><span data-step-label>Step 1 of 4</span></div>
+          <div class="bars" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span></div>
+          <p class="req-note">Fields marked with <span class="req">*</span> are required.</p>
         </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Employee count <span class="req">*</span></label>
-            <button type="button" class="select">Select <img src="assets/figma-2258/form-chevron.svg" alt="" /></button>
+        <div class="form-steps">
+          <!-- Step 1: About you (StartupFormAboutYouStep) -->
+          <div class="form-step active" data-step="0">
+            <div class="form-row two">
+            <div class="field">
+              <label class="input-label" for="founder_first_name">First name <span class="req">*</span></label>
+              <input id="founder_first_name" name="founder_first_name" type="text" maxlength="80" placeholder="Ada" required />
+              <p class="msg">Please enter your first name</p>
+            </div>
+            <div class="field">
+              <label class="input-label" for="founder_last_name">Last name <span class="req">*</span></label>
+              <input id="founder_last_name" name="founder_last_name" type="text" maxlength="80" placeholder="Lovelace" required />
+              <p class="msg">Please enter your last name</p>
+            </div>
+            </div>
+            <div class="field">
+              <label class="input-label" for="founder_email">Work email <span class="req">*</span></label>
+              <input id="founder_email" name="founder_email" type="email" maxlength="80" placeholder="ada@yourstartup.ai" required />
+              <p class="msg">Please enter a valid work email</p>
+            </div>
+            <div class="field">
+              <label class="input-label" for="founder_linkedin">LinkedIn <span class="req">*</span></label>
+              <input id="founder_linkedin" name="founder_linkedin" type="url" maxlength="200" placeholder="https://linkedin.com/in/..." required />
+              <p class="msg">Please enter a valid LinkedIn URL</p>
+            </div>
+            <div class="field">
+              <label for="founder_role">Role <span class="req">*</span></label>
+              <select id="founder_role" name="founder_role" required class="placeholder"><option value="" disabled selected>Select</option><option>Founder / CEO</option><option>Co-founder / CTO</option><option>Co-founder (other)</option><option>Founding engineer</option><option>Other</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
           </div>
-          <div class="field">
-            <label>Incorporation status <span class="req">*</span></label>
-            <button type="button" class="select">Select <img src="assets/figma-2258/form-chevron.svg" alt="" /></button>
+          <!-- Step 2: Company (StartupFormCompanyStep) -->
+          <div class="form-step" data-step="1">
+            <div class="form-row two">
+            <div class="field">
+              <label class="input-label" for="company_name">Company name <span class="req">*</span></label>
+              <input id="company_name" name="company_name" type="text" maxlength="80" placeholder="Acme Voice AI" required />
+              <p class="msg">Please enter your company name</p>
+            </div>
+            <div class="field">
+              <label class="input-label" for="company_website">Website <span class="req">*</span></label>
+              <input id="company_website" name="company_website" type="url" maxlength="200" placeholder="https://yourstartup.ai" required />
+              <p class="msg">Please enter a valid URL</p>
+            </div>
+            </div>
+            <div class="form-row two">
+            <div class="field">
+              <label for="employee_count">Employee count <span class="req">*</span></label>
+              <select id="employee_count" name="employee_count" required class="placeholder"><option value="" disabled selected>Select</option><option>1–5</option><option>6–15</option><option>16–49</option><option>50+</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
+            <div class="field">
+              <label for="incorporation_status">Incorporation status <span class="req">*</span></label>
+              <select id="incorporation_status" name="incorporation_status" required class="placeholder"><option value="" disabled selected>Select</option><option>Incorporated</option><option>Actively incorporating</option><option>Not yet incorporated</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
+            </div>
+            <div class="form-row two">
+            <div class="field">
+              <label for="funding_round">Latest funding round <span class="req">*</span></label>
+              <select id="funding_round" name="funding_round" required class="placeholder"><option value="" disabled selected>Select</option><option>Bootstrapped / none</option><option>Pre-seed</option><option>Seed</option><option>Series A</option><option>Series B or later</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
+            <div class="field">
+              <label for="capital_raised">Total capital raised <span class="req">*</span></label>
+              <select id="capital_raised" name="capital_raised" required class="placeholder"><option value="" disabled selected>Select</option><option>$0</option><option>Under $1M</option><option>$1M – $5M</option><option>$5M+</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
+            </div>
+            <div class="field">
+              <label for="existing_customer">Existing LiveKit customer? <span class="req">*</span></label>
+              <select id="existing_customer" name="existing_customer" required class="placeholder"><option value="" disabled selected>Select</option><option>No, new to LiveKit</option><option>Free / self-serve user</option><option>Paying customer</option></select>
+              <p class="msg">Please select an option</p>
+              <p class="help">The program is built for net-new startup projects. Apply anyway if you think you should be considered.</p>
+            </div>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Latest funding round <span class="req">*</span></label>
-            <button type="button" class="select">Select <img src="assets/figma-2258/form-chevron.svg" alt="" /></button>
+          <!-- Step 3: Product (StartupFormProductStep) -->
+          <div class="form-step" data-step="2">
+            <div class="field">
+              <label class="input-label" for="product_description">Product description <span class="req">*</span></label>
+              <textarea id="product_description" name="product_description" rows="4" placeholder="What are you building, and for whom?" required></textarea>
+              <p class="msg">Please describe your product</p>
+            </div>
+            <div class="field">
+              <label class="input-label" for="voice_ai_use_case">Use case <span class="req">*</span></label>
+              <textarea id="voice_ai_use_case" name="voice_ai_use_case" rows="4" placeholder="How does voice, video, or physical AI power your product?" required></textarea>
+              <p class="msg">Please describe your use case</p>
+            </div>
+            <div class="field">
+              <label for="production_status">Production status <span class="req">*</span></label>
+              <select id="production_status" name="production_status" required class="placeholder"><option value="" disabled selected>Select</option><option>Live in production</option><option>Private beta</option><option>In development, launching within 6 months</option><option>Launching in 6+ months</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
+            <div class="field">
+              <label class="input-label" for="expected_launch">Expected launch date</label>
+              <input id="expected_launch" name="expected_launch" type="date" />
+              <p class="help">If not yet in production</p>
+            </div>
           </div>
-          <div class="field">
-            <label>Total capital raised <span class="req">*</span></label>
-            <button type="button" class="select">Select <img src="assets/figma-2258/form-chevron.svg" alt="" /></button>
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="field">
-            <label>Existing LiveKit customer? <span class="req">*</span></label>
-            <button type="button" class="select">Select <img src="assets/figma-2258/form-chevron.svg" alt="" /></button>
-            <p class="help">The program is built for net-new startup projects. Apply anyway if you think you should be considered.</p>
+          <!-- Step 4: Finish up (StartupFormFinishUpStep) -->
+          <div class="form-step" data-step="3">
+            <div class="field">
+              <label for="referral_source">How did you hear about the program? <span class="req">*</span></label>
+              <select id="referral_source" name="referral_source" required class="placeholder"><option value="" disabled selected>Select</option><option>LiveKit blog or website</option><option>X / LinkedIn</option><option>Partner (Deepgram, Inworld, ...)</option><option>Accelerator / VC</option><option>Another founder</option><option>Other</option></select>
+              <p class="msg">Please select an option</p>
+            </div>
+            <label class="check-row" id="agree-row">
+              <input type="checkbox" name="agree_terms" required />
+              <span class="box"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span>I agree to the <a href="#" target="_blank" rel="noopener noreferrer">program terms</a>, including reasonable co-marketing rights. LiveKit may highlight participating startups in case studies, launch announcements, and ecosystem spotlights. <span class="req">*</span></span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" name="email_opt_in" />
+              <span class="box"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.75 13.0625L9.9 16.25L17.25 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span>Send me product updates and news about the Startup Program.</span>
+            </label>
           </div>
         </div>
         <div class="form-footer">
-          <div class="bar">
-            <div class="left">
-              <button type="button" class="btn-back">Back</button>
-              <p class="note">Fields marked with <span class="req">*</span> are required.</p>
-            </div>
-            <button type="submit" class="btn-next">Next</button>
-          </div>
+          <div class="left"><button type="button" class="btn btn-ghost btn-lg focus-ring" data-back hidden>Back</button></div>
+          <button type="submit" class="btn-next focus-ring" data-next>Next</button>
         </div>
+      </div>
+      <div class="form-success" role="status">
+        <h3>Application received</h3>
+        <p>Thanks for applying to the LiveKit Startup Program. We review applications against our eligibility criteria and will follow up at the email you provided, usually within a few business days. In the meantime, you can <a href="https://cloud.livekit.io" target="_blank" rel="noopener noreferrer">start building free</a>.</p>
       </div>
     </form>
   </div>
 </section>
 
-<!-- ==================== FAQ (Figma 2258:60441) ==================== -->
-<section class="section faq" id="faq">
+<!-- ==================== FAQ (SectionFaq + Collapsible) ==================== -->
+<section class="section faq" id="faqs">
   <div class="inner">
-    <h2>FAQs</h2>
+    <header class="sh">
+      <div class="sh-body"><h2>FAQs</h2></div>
+    </header>
     <div class="faq-list">
       <details>
-        <summary><span>How do credits work, and what can I use them on?</span><img src="assets/figma-2258/faq-chevron.svg" alt="" /></summary>
+        <summary><span class="q">How do credits work, and what can I use them on?</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 10L12 14L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="answer"><p>LiveKit Cloud is a distributed cloud platform for running voice, video, and physical AI agents. It includes a global mesh network for ultra low-latency media transport, fully managed agent deployments, native telephony support, and full-stack session and agent observability. To learn more, <a href="#">visit our docs</a>.</p></div>
       </details>
       <details>
-        <summary><span>How long do the credits last?</span><img src="assets/figma-2258/faq-chevron.svg" alt="" /></summary>
+        <summary><span class="q">How long do the credits last?</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 10L12 14L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="answer"><p>Sign up for a LiveKit Cloud account, use the LiveKit Agents SDKs or Agent Builder to build an agent, then deploy to LiveKit Cloud using the CLI or with a single click in the dashboard. To learn more, visit our docs.</p></div>
       </details>
       <details>
-        <summary><span>Is LiveKit secure and compliant?</span><img src="assets/figma-2258/faq-chevron.svg" alt="" /></summary>
-        <div class="answer"><p>Yes, LiveKit Cloud is secure and compliant, with end-to-end encryption, strict security policies, identity and access management, and more. LiveKit Cloud complies with SOC 2 Type II, GDPR, CCPA, and HIPAA. To learn more, visit our <a href="#">Security page</a> and <a href="#">Trust Center<img src="assets/figma-2258/faq-external.svg" alt="" /></a>.</p></div>
+        <summary><span class="q">Is LiveKit secure and compliant?</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 10L12 14L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <div class="answer"><p>Yes, LiveKit Cloud is secure and compliant, with end-to-end encryption, strict security policies, identity and access management, and more. LiveKit Cloud complies with SOC 2 Type II, GDPR, CCPA, and HIPAA. To learn more, visit our <a href="#">Security page</a> and <a href="#">Trust Center<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v6H5V6h6"/></svg></a>.</p></div>
       </details>
       <details>
-        <summary><span>Can we sign a BAA for healthcare and other regulated use cases?</span><img src="assets/figma-2258/faq-chevron.svg" alt="" /></summary>
+        <summary><span class="q">Can we sign a BAA for healthcare and other regulated use cases?</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 10L12 14L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="answer">
           <p>Yes. <a href="#">LiveKit Inference</a> supports over 50 AI models out-of-the-box, no API keys or additional configuration required. In addition, the LiveKit Agents framework supports another 200+ models via plugins, including an OpenAI plugin that supports most models compatible with the OpenAI API format.</p>
           <p>For models not currently available via LiveKit Inference or a plugin, the LiveKit Agents plugin framework is extensible and community-driven. We welcome contributions for new STT, LLM, and TTS plugins. To learn more about using AI models with LiveKit, <a href="#">visit our docs</a>.</p>
         </div>
       </details>
       <details>
-        <summary><span>We&rsquo;ve raised more than $5M. Can we still apply?</span><img src="assets/figma-2258/faq-chevron.svg" alt="" /></summary>
+        <summary><span class="q">We&rsquo;ve raised more than $5M. Can we still apply?</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 10L12 14L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="answer"><p>No, all agents built with the LiveKit Agents SDKs can be deployed to LiveKit Cloud without any code changes. To learn more about deploying agents to LiveKit Cloud, <a href="#">visit our docs</a>.</p></div>
       </details>
       <details>
-        <summary><span>What happens after I apply?</span><img src="assets/figma-2258/faq-chevron-last.svg" alt="" /></summary>
+        <summary><span class="q">What happens after I apply?</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 10L12 14L16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="answer"><p>Yes, the Build plan is completely free on LiveKit Cloud. It offers generous monthly quotas to get you started, including 1,000 agent session minutes, LiveKit Inference credits, and one free US local phone number for inbound calling. To learn more, visit our <a href="#">pricing page</a>.</p></div>
       </details>
     </div>
   </div>
 </section>
 
-<!-- ==================== Footer (Figma 2258:60504) ==================== -->
-<footer class="section footer">
-  <div class="inner">
-    <div class="foot-brand">
-      <a class="logo" href="#" aria-label="LiveKit homepage"><img src="assets/figma-2258/foot-logo.svg" alt="" /></a>
-      <p>The open source framework and cloud platform for voice, video, and physical AI agents.</p>
-      <div class="foot-badges">
-        <a href="#" aria-label="SOC 2 Type II compliant"><img src="assets/figma-2258/foot-soc2.svg" alt="SOC 2 Type II" width="40" height="40" /></a>
-        <a href="#" aria-label="GDPR compliant"><img src="assets/figma-2258/foot-gdpr.svg" alt="GDPR" width="40" height="40" /></a>
-        <a href="#" aria-label="HIPAA compliant"><img class="hipaa" src="assets/figma-2258/foot-hipaa@3x.png" alt="HIPAA" /></a>
+<!-- ==================== Footer (packages/bytes-react Footer.tsx) ==================== -->
+<footer class="footer">
+  <div class="upper">
+    <div class="inner">
+      <div class="foot-brand">
+        <a class="logo" href="#" aria-label="LiveKit homepage"><img src="assets/figma-2258/foot-logo.svg" alt="" width="20" height="20" /></a>
+        <p>The open source framework and cloud platform for voice, video, and physical AI agents.</p>
+        <div class="foot-badges">
+          <a href="#" aria-label="SOC 2 Type II compliant"><img src="assets/figma-2258/foot-soc2.svg" alt="SOC 2 Type II" /></a>
+          <a href="#" aria-label="GDPR compliant"><img src="assets/figma-2258/foot-gdpr.svg" alt="GDPR" /></a>
+          <a href="#" aria-label="HIPAA compliant"><img src="assets/figma-2258/foot-hipaa@3x.png" alt="HIPAA" /></a>
+        </div>
       </div>
-    </div>
-    <div class="foot-cols">
-      <div class="foot-col">
-        <h4>Products</h4>
-        <a href="#">Agent platform</a>
-        <a href="#">Media server</a>
-        <a href="#">SDKs</a>
-        <a href="#">Cloud dashboard</a>
-        <a href="#">Security</a>
-        <a href="#">Terms of service</a>
-      </div>
-      <div class="foot-col">
-        <h4>Resources</h4>
-        <a href="#">Documentation</a>
-        <a href="#">Community</a>
-        <a href="#">Coding agent support</a>
-        <a href="#">Brand assets</a>
-        <a href="#">Video codecs</a>
-        <a href="#">Codec bitrates</a>
-        <a href="#">WebRTC browser test</a>
-        <a href="#">Connection test</a>
-      </div>
-      <div class="foot-col">
-        <h4>Company</h4>
-        <a href="#">About</a>
-        <a href="#">Blog</a>
-        <a href="#">Careers</a>
-        <a href="#">Open source</a>
-        <div class="foot-touch">
-          <h4 class="bold">Keep in touch</h4>
-          <div class="foot-social">
-            <a href="#" aria-label="GitHub"><img src="assets/figma-2258/foot-github.svg" alt="" /></a>
-            <a href="#" aria-label="X"><img src="assets/figma-2258/foot-x.svg" alt="" /></a>
-            <a href="#" aria-label="Slack"><img src="assets/figma-2258/foot-slack.svg" alt="" /></a>
-            <a href="#" aria-label="YouTube"><img class="yt" src="assets/figma-2258/foot-youtube.svg" alt="" /></a>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>Products</h4>
+          <a href="#">Agent platform</a>
+          <a href="#">Media server</a>
+          <a href="#">SDKs</a>
+          <a href="#">Cloud dashboard</a>
+          <a href="#">Security</a>
+          <a href="#">Terms of service</a>
+        </div>
+        <div class="foot-col">
+          <h4>Resources</h4>
+          <a href="#">Documentation</a>
+          <a href="#">Community</a>
+          <a href="#">Coding agent support</a>
+          <a href="#">Brand assets</a>
+          <a href="#">Video codecs</a>
+          <a href="#">Codec bitrates</a>
+          <a href="#">WebRTC browser test</a>
+          <a href="#">Connection test</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Blog</a>
+          <a href="#">Careers</a>
+          <a href="#">Open source</a>
+          <div class="foot-touch">
+            <h4 class="bold">Keep in touch</h4>
+            <div class="foot-social">
+              <a href="#" aria-label="GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .198a8 8 0 0 0-2.53 15.59c.4.074.547-.174.547-.386 0-.19-.007-.693-.01-1.36-2.226.483-2.695-1.073-2.695-1.073-.364-.924-.89-1.17-.89-1.17-.725-.496.056-.486.056-.486.803.056 1.225.824 1.225.824.714 1.223 1.873.87 2.33.665.072-.517.278-.87.507-1.07-1.777-.2-3.644-.888-3.644-3.953 0-.873.31-1.587.823-2.147-.09-.202-.36-1.015.07-2.117 0 0 .67-.215 2.2.82a7.66 7.66 0 0 1 4 0c1.52-1.035 2.19-.82 2.19-.82.43 1.102.16 1.915.08 2.117.51.56.82 1.274.82 2.147 0 3.073-1.87 3.75-3.65 3.947.28.24.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.14.46.55.38A8 8 0 0 0 8 .198Z"/></svg></a>
+              <a href="#" aria-label="X"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M12.6 1.5h2.2L9.9 7.1l5.8 7.4h-4.5L7.6 9.9l-4.1 4.6H1.3l5.2-6L1 1.5h4.6l3.2 4.2 3.8-4.2Zm-.8 11.7h1.2L5.2 2.7H3.9l7.9 10.5Z"/></svg></a>
+              <a href="#" aria-label="Slack"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.4 10.1a1.7 1.7 0 1 1-1.7-1.7h1.7v1.7Zm.8 0a1.7 1.7 0 0 1 3.4 0v4.2a1.7 1.7 0 0 1-3.4 0v-4.2ZM5.9 3.4a1.7 1.7 0 1 1 1.7-1.7v1.7H5.9Zm0 .9a1.7 1.7 0 0 1 0 3.4H1.7a1.7 1.7 0 0 1 0-3.4h4.2Zm6.7 1.6a1.7 1.7 0 1 1 1.7 1.7h-1.7V5.9Zm-.9 0a1.7 1.7 0 0 1-3.4 0V1.7a1.7 1.7 0 0 1 3.4 0v4.2Zm-1.6 6.7a1.7 1.7 0 1 1-1.7 1.7v-1.7h1.7Zm0-.9a1.7 1.7 0 0 1 0-3.4h4.2a1.7 1.7 0 0 1 0 3.4h-4.2Z"/></svg></a>
+              <a href="#" aria-label="YouTube"><svg class="yt" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M19.6 5.6a2.5 2.5 0 0 0-1.8-1.8C16.2 3.4 10 3.4 10 3.4s-6.2 0-7.8.4A2.5 2.5 0 0 0 .4 5.6C0 7.2 0 10 0 10s0 2.8.4 4.4a2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.4.4-4.4s0-2.8-.4-4.4ZM8 12.9V7.1l5.2 2.9L8 12.9Z"/></svg></a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <div class="lower">
+    <div class="inner">
+      <p>&copy; 2026 LiveKit, Inc.<span class="pipe">|</span><a href="#">Terms of Service</a><span class="pipe">|</span><a href="#">Privacy Policy</a></p>
+      <a class="status" href="#"><span class="dot" aria-hidden="true"></span>All systems operational</a>
+    </div>
+  </div>
 </footer>
 
+<script>
+  // Header: sticky shell tightens and gains a border once the page scrolls (Header.tsx / useHeaderScroll)
+  (function () {
+    var nav = document.querySelector('.nav');
+    var toggle = nav.querySelector('.nav-toggle');
+    var ticking = false;
+    function sync() { nav.classList.toggle('scrolled', window.scrollY > 0); ticking = false; }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(sync); } }, { passive: true });
+    sync();
+    function setMenu(open) {
+      nav.classList.toggle('menu-open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      document.documentElement.style.setProperty('--header-h', nav.offsetHeight + 'px');
+    }
+    toggle.addEventListener('click', function () { setMenu(!nav.classList.contains('menu-open')); });
+    window.addEventListener('resize', function () { if (window.innerWidth >= 1024) setMenu(false); });
+    nav.querySelectorAll('.mobile-nav a').forEach(function (a) { a.addEventListener('click', function () { setMenu(false); }); });
+  })();
+
+  // Logo ribbon: each column cycles its logos every 3.5s, staggered 0.1s per column (SectionLogoRibbon LogoContainer)
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var cells = document.querySelectorAll('.logo-band .cell');
+    cells.forEach(function (cell, col) {
+      var slots = cell.querySelectorAll('.slot');
+      var i = 0;
+      function show(idx) {
+        slots.forEach(function (s, k) {
+          if (k === idx) { s.classList.remove('out'); void s.offsetWidth; s.classList.add('in'); }
+          else if (s.classList.contains('in')) { s.classList.remove('in'); s.classList.add('out'); }
+          else { s.classList.remove('out'); }
+        });
+      }
+      setTimeout(function () { show(0); }, 250 + col * 100);
+      if (reduce || slots.length < 2) return;
+      setInterval(function () {
+        i = (i + 1) % slots.length;
+        setTimeout(function () { show(i); }, col * 100);
+      }, 3500);
+    });
+  })();
+
+  // Startup application form: 4 steps (useStartupForm). Next validates the current step, Submit shows the success state.
+  (function () {
+    var form = document.getElementById('startup-form'); if (!form) return;
+    var LEGENDS = ['About you', 'Company', 'Product', 'Finish up'];
+    var steps = form.querySelectorAll('.form-step'), bars = form.querySelectorAll('.bars span');
+    var back = form.querySelector('[data-back]'), next = form.querySelector('[data-next]');
+    var legend = form.querySelector('[data-legend]'), stepLabel = form.querySelector('[data-step-label]');
+    var i = 0;
+    function render() {
+      steps.forEach(function (s, k) { s.classList.toggle('active', k === i); });
+      bars.forEach(function (b, k) { b.classList.toggle('on', k <= i); });
+      legend.textContent = LEGENDS[i]; stepLabel.textContent = 'Step ' + (i + 1) + ' of ' + steps.length;
+      back.hidden = i === 0; next.textContent = i === steps.length - 1 ? 'Submit' : 'Next';
+    }
+    function validate() {
+      var ok = true, first = null;
+      steps[i].querySelectorAll('input, select, textarea').forEach(function (el) {
+        var field = el.closest('.field') || el.closest('.check-row');
+        var valid = el.checkValidity();
+        if (field) field.classList.toggle('invalid', !valid);
+        if (!valid) { ok = false; first = first || el; }
+      });
+      if (first) first.focus();
+      return ok;
+    }
+    form.querySelectorAll('select').forEach(function (sel) {
+      sel.addEventListener('change', function () { sel.classList.toggle('placeholder', !sel.value); });
+    });
+    form.addEventListener('input', function (e) {
+      var f = e.target.closest('.field, .check-row'); if (f && e.target.checkValidity()) f.classList.remove('invalid');
+    });
+    back.addEventListener('click', function () { if (i > 0) { i--; render(); } });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!validate()) return;
+      if (i < steps.length - 1) { i++; render(); form.scrollIntoView({ block: 'nearest' }); }
+      else { form.classList.add('done'); }
+    });
+    render();
+  })();
+</script>
 <script src="assets/shader-hero.js" defer></script>
 </body>
 </html>
