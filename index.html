@@ -359,12 +359,13 @@
   .elig-list { display: flex; flex-direction: column; gap: 0; }
   .elig-list li { display: flex; align-items: center; gap: 12px; padding: 8px 0; color: var(--fg2); font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
   .elig-list li svg { width: 20px; height: 20px; flex: none; color: var(--cyan-400); }
-  /* Art layer: anchored to the viewport centre (Figma frame origin sits at x=706 of 1440 → 50% - 14px), not to the column,
-     so the isometric grid keeps extending on both sides as the browser gets wider; the section clips it. */
-  .elig-art { display: none; position: absolute; left: calc(50% - 14px); top: 80px; width: 817.83px; height: 428px; pointer-events: none; }
-  .elig-art .grid { position: absolute; left: 0; top: 0; width: 1612.6px; height: 1291.67px; transform-origin: 0 0; transform: matrix(0.866, -0.5, 0.866, 0.5, -958, 521.68); }
-  .elig-art .corners { position: absolute; left: 89.85px; top: 49.05px; width: 552.1px; height: 318.75px; }
-  .elig-art .tile { position: absolute; left: 153.35px; top: 86.83px; width: 390.28px; height: 232.81px; }
+  /* Art: the Figma section render (2377:88530 clipped to the 1440 frame), centred on the viewport so it stays
+     aligned with the 1280 container. The text column sits above it (z-index). */
+  .elig-art { display: none; position: absolute; left: 50%; top: 0; width: 1440px; height: 589px; transform: translateX(-50%); pointer-events: none; }
+  .elig-art img { width: 1440px; height: 589px; max-width: none; }
+  @media (min-width: 1441px) {
+    .elig-art img { mask-image: linear-gradient(to right, #000 calc(100% - 120px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 120px), transparent); }
+  }
   @media (min-width: 1024px) {
     .eligibility .inner { grid-template-columns: 608px 1fr; gap: 118px; }
     .elig-art { display: block; }
@@ -774,9 +775,7 @@
     </div>
   </div>
   <div class="elig-art" aria-hidden="true">
-    <img class="grid" src="assets/figma-2258/elig-grid-v2.svg" alt="" />
-    <img class="tile" src="assets/figma-2258/elig-tile-v2@2x.png" alt="" />
-    <img class="corners" src="assets/figma-2258/elig-corners-v2@2x.png" alt="" />
+    <img src="assets/figma-2258/elig-art-v3@2x.png" alt="" width="1440" height="589" />
   </div>
 </section>
 
