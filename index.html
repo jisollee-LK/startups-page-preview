@@ -77,28 +77,30 @@
   .sh .eyebrow {
     font-family: var(--font-mono);
     font-size: 14px;
-    line-height: 20px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
+    line-height: 1.5;
+    font-weight: 400;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
     color: var(--fg3);
   }
+  .sh .eyebrow.bold { font-weight: 700; }
   .sh .sh-body { display: flex; flex-direction: column; gap: 16px; }
   .sh h2 {
     font-family: var(--font-display);
-    font-weight: 300;
+    font-weight: 400;
     font-size: 30px;
     line-height: 1.25;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.4px;
     color: var(--fg0);
     text-wrap: pretty;
   }
+  .sh h2.body-font { font-family: var(--font-sans); letter-spacing: 0; }
   .sh h2 .accent { color: var(--cyan-400); filter: drop-shadow(0 0 8px var(--glow)); }
-  .sh .sub { padding-top: 8px; color: var(--fg2); font-size: 14px; line-height: 20px; letter-spacing: 0.01em; }
+  .sh .sub { padding-top: 8px; color: var(--fg1); font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
   .sh .sub span { display: inline-block; max-width: 65ch; text-wrap: pretty; }
   @media (min-width: 1024px) {
     .sh h2 { font-size: 36px; }
-    .sh .sub { font-size: 16px; line-height: 1.7; }
+    .sh .sub { font-size: 16px; line-height: 1.5; }
   }
 
   /* ============ Buttons (packages/bytes-react Button.tsx) ============ */
@@ -301,7 +303,7 @@
 
   /* ============ What's included (kept as designed) ============ */
   .included .sh { max-width: 576px; }
-  .included-grid { margin-top: 56px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .included-grid { margin-top: 64px; display: grid; grid-template-columns: 1fr; gap: 16px; }
   @media (min-width: 1024px) { .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .inc-card {
     position: relative; display: flex; flex-direction: column; gap: 32px;
@@ -321,7 +323,7 @@
   .inc-price { font-family: var(--font-display); font-size: 30px; line-height: 1.25; letter-spacing: -0.025em; color: var(--fg0); }
   .inc-meta { display: flex; flex-direction: column; gap: 6px; }
   .inc-name { font-size: 16px; line-height: 1.5; letter-spacing: -0.025em; color: var(--fg0); }
-  .inc-desc { font-size: 14px; line-height: 20px; letter-spacing: 0.01em; color: var(--fg2); max-width: 300px; }
+  .inc-desc { font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; color: var(--fg2); max-width: 300px; }
   .plan-card {
     position: absolute; left: calc(50% - 5.5px); top: calc(50% - 1.19px); transform: translate(-50%, -50%);
     width: 265px; height: 229px; padding: 24px;
@@ -330,7 +332,7 @@
   }
   .plan-card .plan-head { display: flex; flex-direction: column; gap: 4px; line-height: 1.5; white-space: nowrap; letter-spacing: 0; }
   .plan-card .plan-name { font-size: 20px; color: var(--fg0); }
-  .plan-card .plan-tag { font-size: 10px; color: var(--fg3); }
+  .plan-card .plan-tag { font-size: 10.5px; color: var(--fg3); }
   .plan-card .plan-price-row { display: flex; align-items: flex-end; gap: 8px; }
   .plan-card .plan-price { font-size: 48px; line-height: 1.25; letter-spacing: 0; color: var(--cyan-400); }
   .plan-card .plan-strike { padding: 8px 0; font-family: var(--font-display); font-size: 18px; line-height: 1.25; letter-spacing: -0.025em; text-decoration: line-through; color: var(--fg4); }
@@ -362,7 +364,7 @@
   .elig-art .corners { position: absolute; left: 89.85px; top: 49.05px; width: 552.1px; height: 318.75px; }
   .elig-art .tile { position: absolute; left: 153.35px; top: 86.83px; width: 390.28px; height: 232.81px; }
   @media (min-width: 1024px) {
-    .eligibility .inner { grid-template-columns: 608px 1fr; gap: 64px; }
+    .eligibility .inner { grid-template-columns: 608px 1fr; gap: 118px; }
     .elig-art { display: block; }
   }
 
@@ -377,11 +379,11 @@
     display: flex; flex-direction: column; gap: 24px;
   }
   .plat-card svg { width: 20px; height: 20px; color: var(--fg2); }
-  .plat-card h3 { font-family: var(--font-sans); font-weight: 600; font-size: 18px; line-height: 28px; letter-spacing: 0; color: var(--fg0); margin-bottom: 8px; }
-  .plat-card p { color: var(--fg3); }
+  .plat-card h3 { font-family: var(--font-sans); font-weight: 600; font-size: 16px; line-height: 1.5; letter-spacing: 0; color: var(--fg0); margin-bottom: 8px; }
+  .plat-card p { color: var(--fg3); font-size: 16px; line-height: 1.5; }
 
   /* ============ Customer stories (StartupStoriesSection.tsx) ============ */
-  .story-grid { margin-top: 68px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .story-grid { margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 16px; }
   @media (min-width: 1024px) { .story-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .story-card {
     min-height: 280px; padding: 24px;
@@ -401,15 +403,15 @@
 
   /* ============ Apply (StartupApplySection.tsx + bytes-react Form/Input/Select) ============ */
   .apply .inner { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
-  @media (min-width: 1024px) { .apply .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; } }
+  @media (min-width: 1024px) { .apply .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 86px; } }
   .apply-left { display: flex; flex-direction: column; gap: 16px; }
   .apply-left h2 {
-    font-family: var(--font-display); font-weight: 300; font-size: 30px; line-height: 1.25; letter-spacing: -0.025em;
+    font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.25; letter-spacing: -0.4px;
     color: var(--fg0); text-shadow: 0 0 14px #000;
   }
   .apply-left h2 .accent { color: var(--cyan-400); filter: drop-shadow(0 0 8px var(--glow)); }
-  .apply-left p { color: var(--fg2); font-size: 16px; line-height: 1.7; }
-  @media (min-width: 1024px) { .apply-left h2 { font-size: 36px; } .apply-left p { font-size: 18px; line-height: 1.5; } }
+  .apply-left p { color: var(--fg2); font-size: 16px; line-height: 1.5; }
+  @media (min-width: 1024px) { .apply-left h2 { font-size: 36px; } }
   .apply-form {
     width: 100%; max-width: 768px;
     padding: 24px; background: var(--bg2); border: 1px solid var(--sep1); border-radius: 12px;
@@ -489,10 +491,9 @@
   .form-success a:hover { text-decoration: underline; }
 
   /* ============ FAQ (components/sections/SectionFaq.tsx + Collapsible.tsx) ============ */
-  .faq { padding-top: 64px; padding-bottom: 0; }
+  .faq { padding: 64px 24px; }
   .faq .inner { display: grid; grid-template-columns: 1fr; gap: 16px; }
   @media (min-width: 1024px) {
-    .faq { padding-top: 128px; }
     .faq .inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .faq-list { grid-column: span 2; }
   }
@@ -528,7 +529,7 @@
   .faq-list .answer a svg { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-left: 2px; }
 
   /* ============ Footer (packages/bytes-react Footer.tsx) ============ */
-  .footer { margin-top: 128px; }
+  .footer { margin-top: 0; }
   .footer .upper { border-top: 1px solid var(--sep1); padding: 64px 24px; }
   .footer .upper .inner { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
   @media (min-width: 1024px) { .footer .upper .inner { flex-direction: row; } }
@@ -752,7 +753,7 @@
   <div class="inner">
     <div class="elig-left">
       <header class="sh">
-        <p class="eyebrow">Eligibility</p>
+        <p class="eyebrow bold">Eligibility</p>
         <div class="sh-body">
           <h2>Built for <span class="accent">early-stage teams</span></h2>
           <p class="sub"><span>To qualify, your startup should meet the following criteria.</span></p>
@@ -770,7 +771,7 @@
     </div>
   </div>
   <div class="elig-art" aria-hidden="true">
-    <img class="grid" src="assets/figma-2258/elig-grid.svg" alt="" />
+    <img class="grid" src="assets/figma-2258/elig-grid-v2.svg" alt="" />
     <img class="tile" src="assets/figma-2258/elig-tile-v2@2x.png" alt="" />
     <img class="corners" src="assets/figma-2258/elig-corners-v2@2x.png" alt="" />
   </div>
@@ -782,7 +783,7 @@
     <header class="sh">
       <p class="eyebrow">Why LiveKit</p>
       <div class="sh-body">
-        <h2>The platform for <span class="accent">realtime AI</span></h2>
+        <h2 class="body-font">The platform for <span class="accent">realtime AI</span></h2>
         <p class="sub"><span>Everything you need to build, launch, and scale voice, video, and physical AI.</span></p>
       </div>
     </header>
