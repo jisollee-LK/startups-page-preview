@@ -17,7 +17,7 @@
     loopSeconds: 10,
     text: {
       text: "STARTUPS",
-      fontFamily: "Arial, Helvetica, sans-serif",
+      fontFamily: "'TWK Everett', Arial, Helvetica, sans-serif",
       fontWeight: 500,
       fontSize: 300,
       letterSpacing: 2,
@@ -25,7 +25,7 @@
       strokeWeight: 4,
       // layer box, % of canvas. Tool default is 80x26 on 16:9; the hero canvas
       // is 4:1 so the same texture aspect is preserved with a centred box.
-      box: { x: 7.05, y: 7.05, w: 85.9, h: 85.9 },
+      box: { x: 15.65, y: 15.65, w: 68.7, h: 68.7 },
     },
     refract: {
       profile: 0,            // ribbed
@@ -244,7 +244,16 @@ void main(){ vec4 c=texture2D(u_tex,v_uv); gl_FragColor=vec4(clamp(c.rgb,0.0,1.0
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
       return { tex, w, h };
     }
-    const wordmark = textTexture();
+    let wordmark = textTexture();
+    // The brand face is a web font; redraw the texture once it has loaded so the
+    // first frames (drawn with the fallback) are replaced without a reload.
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load(`${T.fontWeight} ${T.fontSize}px ${T.fontFamily}`).then(() => {
+        const next = textTexture();
+        gl.deleteTexture(wordmark.tex);
+        wordmark = next;
+      }).catch(() => {});
+    }
 
     // ---- mouse (window-level, resolved against the canvas rect; smoothed by momentum) ----
     const mouse = { tx: 0.5, ty: 0.5, x: 0.5, y: 0.5 };
