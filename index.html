@@ -362,7 +362,7 @@
   /* Art layer: anchored to the viewport centre (Figma frame origin sits at x=706 of 1440 → 50% - 14px), not to the column,
      so the isometric grid keeps extending on both sides as the browser gets wider; the section clips it. */
   .elig-art { display: none; position: absolute; left: calc(50% - 14px); top: 80px; width: 817.83px; height: 428px; pointer-events: none; }
-  .elig-art .grid { position: absolute; left: 0; top: 0; width: 1612.6px; height: 1291.67px; transform-origin: 0 0; transform: matrix(0.866, -0.5, 0.866, 0.5, -958, 521.68); }
+  .elig-art .grid { position: absolute; left: 0; top: 0; width: 1612.6px; height: 1291.67px; overflow: visible; transform-origin: 0 0; transform: matrix(0.866, -0.5, 0.866, 0.5, -958, 521.68); }
   .elig-art .corners { position: absolute; left: 89.85px; top: 49.05px; width: 552.1px; height: 318.75px; }
   .elig-art .tile { position: absolute; left: 153.35px; top: 86.83px; width: 390.28px; height: 232.81px; }
   @media (min-width: 1024px) {
@@ -774,7 +774,14 @@
     </div>
   </div>
   <div class="elig-art" aria-hidden="true">
-    <img class="grid" src="assets/figma-2258/elig-grid-v2.svg" alt="" />
+    <svg class="grid" viewBox="0 0 1612.6 1291.67" aria-hidden="true" focusable="false">
+      <defs>
+        <pattern id="elig-grid-cell" patternUnits="userSpaceOnUse" x="1.01" y="3.505" width="50.637" height="58.471">
+          <path d="M0.354 0.354H50.283V58.117H0.354Z" fill="none" stroke="#202020" stroke-width="0.709"/>
+        </pattern>
+      </defs>
+      <rect width="1612.6" height="1291.67" fill="url(#elig-grid-cell)"/>
+    </svg>
     <img class="tile" src="assets/figma-2258/elig-tile-v2@2x.png" alt="" />
     <img class="corners" src="assets/figma-2258/elig-corners-v2@2x.png" alt="" />
   </div>
