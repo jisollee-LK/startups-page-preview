@@ -20,7 +20,7 @@
       fontFamily: "'TWK Everett', Arial, Helvetica, sans-serif",
       fontWeight: 500,
       fontSize: 300,
-      letterSpacing: 2,
+      letterSpacing: 1,
       strokeColor: "#6E757A",
       strokeWeight: 4,
       // layer box, % of canvas. Tool default is 80x26 on 16:9; the hero canvas
